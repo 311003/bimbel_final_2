@@ -1,12 +1,87 @@
 <?php
-include 'connection.php'; // Pastikan file koneksi database sudah di-include
+include 'connection.php'; // Koneksi database
 
-$query = "SELECT r.no_reg, r.id_murid, r.tgl_reg, r.nama, r.tanggal_lahir, r.alamat, 
-                 r.jenis_kelamin, r.kelas, r.asal_sekolah, r.no_telp, p.paket AS nama_paket
-          FROM registrasi_murid r
-          LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket";
+$result = null; // ✅ Pastikan $result selalu terdefinisi
 
-$result = $conn->query($query);
+if (isset($_GET['no_reg'])) {
+    $no_reg = $_GET['no_reg'];
+
+    // Debug: cek apakah no_reg ada
+    echo "<script>console.log('No Reg: " . $no_reg . "');</script>";
+
+    // 1. Update status murid menjadi "Divalidasi"
+    $query_update = "UPDATE registrasi_murid SET status = 'Divalidasi' WHERE no_reg = ?";
+    $stmt = $conn->prepare($query_update);
+    $stmt->bind_param("s", $no_reg);
+
+    if (!$stmt->execute()) {
+        die("Error Update: " . $stmt->error); // Debugging error update
+    }
+
+    // 2. Pindahkan data ke registrasi_valid setelah berhasil update status
+    $query_insert = "INSERT INTO registrasi_valid (no_reg, id_murid, tgl_reg, nama, tanggal_lahir, alamat, kelas, asal_sekolah, id_paket, jenis_kelamin, no_telp, status)
+                     SELECT no_reg, id_murid, tgl_reg, nama, tanggal_lahir, alamat, kelas, asal_sekolah, id_paket, jenis_kelamin, no_telp, status
+                     FROM registrasi_murid WHERE no_reg = ?";
+    
+    $stmt_insert = $conn->prepare($query_insert);
+    $stmt_insert->bind_param("s", $no_reg);
+
+    if (!$stmt_insert->execute()) {
+        die("Error Insert: " . $stmt_insert->error); // Debugging error insert
+    }
+
+    // 3. Periksa status murid setelah dipindahkan
+    $check_query = "SELECT status FROM registrasi_valid WHERE no_reg = ?";
+    $stmt_check = $conn->prepare($check_query);
+    $stmt_check->bind_param("s", $no_reg);
+    $stmt_check->execute();
+    $result_check = $stmt_check->get_result();
+    $row = $result_check->fetch_assoc();
+
+    if ($row['status'] == 'Dibatalkan') {
+        // 4. Pindahkan data ke tabel registrasi_batal
+        $insert_query = "INSERT INTO registrasi_batal (no_reg, id_murid, tgl_reg, nama, tanggal_lahir, alamat, kelas, asal_sekolah, id_paket, jenis_kelamin, no_telp, status)
+                         SELECT no_reg, id_murid, tgl_reg, nama, tanggal_lahir, alamat, kelas, asal_sekolah, id_paket, jenis_kelamin, no_telp, status
+                         FROM registrasi_valid WHERE no_reg = ?";
+        $stmt_insert_batal = $conn->prepare($insert_query);
+        $stmt_insert_batal->bind_param("s", $no_reg);
+        $stmt_insert_batal->execute();
+
+        // 5. Hapus dari registrasi_valid setelah dipindahkan
+        $delete_query = "DELETE FROM registrasi_valid WHERE no_reg = ?";
+        $stmt_delete = $conn->prepare($delete_query);
+        $stmt_delete->bind_param("s", $no_reg);
+        $stmt_delete->execute();
+
+        echo "<script>alert('Murid dibatalkan dan dipindahkan ke daftar registrasi batal!'); window.location.href='view_konfirmasi_registrasi.php';</script>";
+        exit;
+    }
+
+    echo "<script>alert('Murid berhasil divalidasi!'); window.location.href='view_konfirmasi_registrasi.php';</script>";
+    echo "<script>alert('Murid berhasil divalidasi!'); window.location.href='hasil_data_registrasi.php';</script>";
+
+    // 6. Ambil data murid yang sudah divalidasi
+    $query = "SELECT rv.no_reg, rv.nama, rv.tanggal_lahir, rv.alamat, rv.kelas, rv.asal_sekolah, rv.jenis_kelamin, rv.no_telp, pb.id_paket
+              FROM registrasi_valid rv
+              JOIN paket_bimbel pb ON rv.id_paket = pb.id_paket
+              WHERE rv.status = 'Divalidasi'";
+
+    // 7. Jalankan query setelah data validasi diperbarui
+    $result = $conn->query($query);
+
+    if (!$result) {
+        die("Query Error: " . $conn->error);
+    }
+
+    // 8. Debugging jumlah data yang ditemukan
+    echo "<p>Jumlah data ditemukan: " . $result->num_rows . "</p>";
+
+    // 9. Tutup statement
+    $stmt->close();
+    $stmt_insert->close();
+    $stmt_check->close();
+    $conn->close();
+}
 ?>
 
 <!DOCTYPE html>
@@ -16,7 +91,7 @@ $result = $conn->query($query);
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - NiceAdmin Bootstrap Template</title>
+  <title>Dashboard - Owner</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -51,180 +126,14 @@ $result = $conn->query($query);
 
 <body>
 
-  <!-- ======= Header ======= -->
-  <header id="header" class="header fixed-top d-flex align-items-center">
-
-    <div class="d-flex align-items-center justify-content-between">
-      <a href="index.html" class="logo d-flex align-items-center">
-        <img src="assets/img/logo.png" alt="">
-        <span class="d-none d-lg-block">NiceAdmin</span>
-      </a>
+</div>
+      <header id="header" class="header fixed-top d-flex align-items-center">
+        <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
+            style="height: 60px; width: auto; display: block;">
+        <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+      </div>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
-
-    <div class="search-bar">
-      <form class="search-form d-flex align-items-center" method="POST" action="#">
-        <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-        <button type="submit" title="Search"><i class="bi bi-search"></i></button>
-      </form>
-    </div><!-- End Search Bar -->
-
-    <nav class="header-nav ms-auto">
-      <ul class="d-flex align-items-center">
-
-        <li class="nav-item d-block d-lg-none">
-          <a class="nav-link nav-icon search-bar-toggle " href="#">
-            <i class="bi bi-search"></i>
-          </a>
-        </li><!-- End Search Icon-->
-
-        <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-bell"></i>
-            <span class="badge bg-primary badge-number">4</span>
-          </a><!-- End Notification Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
-            <li class="dropdown-header">
-              You have 4 new notifications
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-exclamation-circle text-warning"></i>
-              <div>
-                <h4>Lorem Ipsum</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>30 min. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-x-circle text-danger"></i>
-              <div>
-                <h4>Atque rerum nesciunt</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>1 hr. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-check-circle text-success"></i>
-              <div>
-                <h4>Sit rerum fuga</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>2 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-info-circle text-primary"></i>
-              <div>
-                <h4>Dicta reprehenderit</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>4 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li class="dropdown-footer">
-              <a href="#">Show all notifications</a>
-            </li>
-
-          </ul><!-- End Notification Dropdown Items -->
-
-        </li><!-- End Notification Nav -->
-
-        <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-chat-left-text"></i>
-            <span class="badge bg-success badge-number">3</span>
-          </a><!-- End Messages Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
-            <li class="dropdown-header">
-              You have 3 new messages
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-1.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>Maria Hudson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>4 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-2.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>Anna Nelson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>6 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-3.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>David Muldon</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>8 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="dropdown-footer">
-              <a href="#">Show all messages</a>
-            </li>
-
-          </ul><!-- End Messages Dropdown Items -->
-
-        </li><!-- End Messages Nav -->
-
-        <li class="nav-item dropdown pe-3">
-
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">K. Anderson</span>
-          </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
@@ -265,8 +174,6 @@ $result = $conn->query($query);
               <hr class="dropdown-divider">
             </li>
 
-           
-
           </ul><!-- End Profile Dropdown Items -->
         </li><!-- End Profile Nav -->
 
@@ -300,10 +207,16 @@ $result = $conn->query($query);
             <span>Input</span>
           </a>
         </li>
-        <li>
-          <a href="hasil_data_registrasi.php">
+        </li>
+        <a href="konfirmasi_registrasi.php">
             <i class="bi bi-circle"></i>
-            <span>Hasil Data</span>
+            <span>Konfirmasi Registrasi </span>
+          </a>
+        </li>
+        </li>
+        <a href="view_konfirmasi_registrasi.php">
+            <i class="bi bi-circle"></i>
+            <span>View Konfirmasi Registrasi </span>
           </a>
         </li>
       </ul>
@@ -340,31 +253,8 @@ $result = $conn->query($query);
       </a>
     </li><!-- End Pembayaran -->
 
-    <!-- Presensi -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#presensi-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-menu-button-wide"></i>
-        <span>Presensi</span>
-        <i class="bi bi-chevron-down ms-auto"></i>
-      </a>
-      <ul id="presensi-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li>
-          <a href="presensi_input.php">
-            <i class="bi bi-circle"></i>
-            <span>Input</span>
-          </a>
-        </li>
-        <li>
-          <a href="presensi_hasil.php">
-            <i class="bi bi-circle"></i>
-            <span>Hasil Data</span>
-          </a>
-        </li>
-      </ul>
-    </li><!-- End Presensi -->
-
-    <!-- Jadwal -->
-    <li class="nav-item">
+   <!-- Jadwal -->
+   <li class="nav-item">
       <a class="nav-link collapsed" data-bs-target="#master-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-menu-button-wide"></i>
         <span>Master</span>
@@ -389,7 +279,12 @@ $result = $conn->query($query);
             <span>Paket</span>
           </a>
         </li>
-
+        <li>
+          <a href="master_user.php">
+            <i class="bi bi-circle"></i>
+            <span>User</span>
+          </a>
+        </li>
       </ul>
     </li><!-- End Jadwal -->
 
@@ -403,64 +298,48 @@ $result = $conn->query($query);
   </ul>
 </aside><!-- End Sidebar -->
 
-  <main id="main" class="main">
+<main id="main" class="main">
+    <div class="container mt-4">
+        <h2 class="text-center">Data Murid Bimbel</h2>
 
-    <div class="pagetitle">
-      <h1>Hasil Data Registrasi</h1>
-    </div><!-- End Page Title -->
+        <h4 class="mt-4 text-success">✅ Murid yang Jadi Ikut Bimbel</h4>
 
-   <!-- Begin Page Content -->
-<div class="container-fluid">
-    <div class="card shadow mb-4">
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>No Registrasi</th>
-                        <th>ID Murid</th>
-                        <th>Tanggal Registrasi</th>
-                        <th>Nama</th>
-                        <th>Tanggal Lahir</th>
-                        <th>Alamat</th>
-                        <th>Jenis Kelamin</th>
-                        <th>Kelas</th>
-                        <th>Asal Sekolah</th>
-                        <th>Paket</th>
-                        <th>Nomor Telepon</th>
-                        <th>Action</th>                                      
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td>" . $row['no_reg'] . "</td>";
-                            echo "<td>" . $row['id_murid'] . "</td>";
-                            echo "<td>" . $row['tgl_reg'] . "</td>";
-                            echo "<td>" . $row['nama'] . "</td>";
-                            echo "<td>" . $row['tanggal_lahir'] . "</td>";
-                            echo "<td>" . $row['alamat'] . "</td>";
-                            echo "<td>" . $row['jenis_kelamin'] . "</td>";
-                            echo "<td>" . $row['kelas'] . "</td>";
-                            echo "<td>" . $row['asal_sekolah'] . "</td>";
-                            echo "<td>" . $row['nama_paket'] . "</td>"; // Tampilkan nama paket
-                            echo "<td>" . $row['no_telp'] . "</td>";
-                            echo "<td>";
-                            echo "<a href='edit_registrasi.php?no_reg=" . $row['no_reg'] . "' class='btn btn-sm btn-warning'>Edit</a> ";
-                            echo "<a href='delete_registrasi.php?no_reg=" . $row['no_reg'] . "' class='btn btn-sm btn-danger'>Delete</a>";
-                            echo "</td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='10' class='text-center'>Data tidak ditemukan</td></tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+        <table class="table table-bordered">
+            <thead class="table-success">
+                <tr>
+                    <th>No Registrasi</th>
+                    <th>Nama</th>
+                    <th>Tanggal Lahir</th>
+                    <th>Alamat</th>
+                    <th>Kelas</th>
+                    <th>Asal Sekolah</th>
+                    <th>Jenis Kelamin</th>
+                    <th>No Telepon</th>
+                    <th>Paket</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+            if ($result && $result->num_rows > 0) { // ✅ Pastikan $result tidak null atau error
+                while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($row['no_reg']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['nama']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['tanggal_lahir']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['alamat']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['kelas']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['asal_sekolah']) . "</td>";
+            echo "<td>" . ($row['jenis_kelamin'] == 'L' ? 'Laki-laki' : 'Perempuan') . "</td>";
+            echo "<td>" . htmlspecialchars($row['no_telp']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['id_paket']) . "</td>";
+            echo "</tr>";
+        }
+    } else {
+        echo "<tr><td colspan='9' class='text-center'>Belum ada murid yang divalidasi</td></tr>";
+    }
+    ?>
+</tbody>
+
 
 <!-- Vendor JS Files -->
   <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>

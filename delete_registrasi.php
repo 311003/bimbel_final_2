@@ -1,48 +1,49 @@
 <?php
-include 'connection.php'; // Koneksi ke database
+include 'connection.php';
 
-// Cek apakah no_reg tersedia di URL
 if (isset($_GET['no_reg'])) {
     $no_reg = $_GET['no_reg'];
 
-    // Mulai transaksi untuk memastikan keandalan penghapusan
-    $conn->begin_transaction();
+    // 1. Ambil semua id_pembayaran berdasarkan no_reg
+    $get_pembayaran = $conn->prepare("SELECT id_pembayaran FROM pembayaran WHERE no_reg = ?");
+    $get_pembayaran->bind_param("s", $no_reg);
+    $get_pembayaran->execute();
+    $result = $get_pembayaran->get_result();
 
-    try {
-        // **1. Pastikan data dengan no_reg ada**
-        $query_check = "SELECT no_reg FROM registrasi_murid WHERE no_reg = ?";
-        $stmt_check = $conn->prepare($query_check);
-        $stmt_check->bind_param("s", $no_reg);
-        $stmt_check->execute();
-        $result_check = $stmt_check->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $id_pembayaran = $row['id_pembayaran'];
 
-        if ($result_check->num_rows == 0) {
-            throw new Exception("Data dengan No Registrasi tidak ditemukan.");
-        }
-        $stmt_check->close();
+        // 1.1 Hapus bukti_pembayaran berdasarkan id_pembayaran
+        $delete_bukti = $conn->prepare("DELETE FROM bukti_pembayaran WHERE id_pembayaran = ?");
+        $delete_bukti->bind_param("s", $id_pembayaran);
+        $delete_bukti->execute();
+        $delete_bukti->close();
+    }
+    $get_pembayaran->close();
 
-        // **2. Hapus data hanya dari tabel registrasi_murid**
-        $query_delete = "DELETE FROM registrasi_murid WHERE no_reg = ?";
-        $stmt_delete = $conn->prepare($query_delete);
-        $stmt_delete->bind_param("s", $no_reg);
-        
-        if (!$stmt_delete->execute()) {
-            throw new Exception("Gagal menghapus data registrasi murid.");
-        }
-        $stmt_delete->close();
+    // 2. Hapus pembayaran berdasarkan no_reg
+    $stmt2 = $conn->prepare("DELETE FROM pembayaran WHERE no_reg = ?");
+    $stmt2->bind_param("s", $no_reg);
+    $stmt2->execute();
+    $stmt2->close();
 
-        // **3. Commit transaksi jika penghapusan berhasil**
-        $conn->commit();
-        echo "<script>alert('Data registrasi murid berhasil dihapus!'); window.location.href='hasil_data_registrasi.php';</script>";
+    // 3. Hapus dari registrasi_valid
+    $stmt3 = $conn->prepare("DELETE FROM registrasi_valid WHERE no_reg = ?");
+    $stmt3->bind_param("s", $no_reg);
+    $stmt3->execute();
+    $stmt3->close();
 
-    } catch (Exception $e) {
-        // Rollback transaksi jika ada kesalahan
-        $conn->rollback();
-        echo "<script>alert('Gagal menghapus data! Error: " . addslashes($e->getMessage()) . "'); window.history.back();</script>";
+    // 4. Hapus dari registrasi_murid
+    $stmt4 = $conn->prepare("DELETE FROM registrasi_murid WHERE no_reg = ?");
+    $stmt4->bind_param("s", $no_reg);
+
+    if ($stmt4->execute()) {
+        echo "<script>alert('Murid berhasil dihapus secara permanen!'); window.location.href='konfirmasi_registrasi.php';</script>";
+    } else {
+        echo "<script>alert('Terjadi kesalahan saat menghapus data!'); window.history.back();</script>";
     }
 
+    $stmt4->close();
     $conn->close();
-} else {
-    echo "<script>alert('No Registrasi tidak ditemukan!'); window.location.href='hasil_data_registrasi.php';</script>";
 }
 ?>

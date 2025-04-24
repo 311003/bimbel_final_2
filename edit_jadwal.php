@@ -1,68 +1,96 @@
 <?php
 include 'connection.php'; // Koneksi ke database
 
-// Ambil ID Jadwal dari URL
-$id_jadwal = isset($_GET['id_jadwal']) ? $_GET['id_jadwal'] : '';
-
-if (!empty($id_jadwal)) {
-    // Ambil data berdasarkan ID Jadwal
-    $query_jadwal = "SELECT * FROM jadwal WHERE id_jadwal = ?";
-    $stmt = $conn->prepare($query_jadwal);
-    $stmt->bind_param("s", $id_jadwal);
-    $stmt->execute();
-    $result_jadwal = $stmt->get_result();
-    $jadwal = $result_jadwal->fetch_assoc();
-    $stmt->close();
-
-    // Cek apakah data ditemukan
-    if (!$jadwal) {
-        die("<script>alert('Data tidak ditemukan untuk ID Jadwal: $id_jadwal'); window.history.back();</script>");
-    }
-} else {
-    die("<script>alert('ID Jadwal tidak valid!'); window.history.back();</script>");
+// ✅ Ambil ID Jadwal dari URL
+if (!isset($_GET['id_jadwal'])) {
+    die("Error: ID Jadwal tidak ditemukan.");
 }
 
-// Jika form disubmit untuk update data
-if (isset($_POST['update'])) {
-    // Ambil data dari form
-    $id_guru = $_POST['id_guru'];
-    $id_murid = $_POST['id_murid'];
-    $nama_murid = $_POST['nama_murid'];
+$id_jadwal = $_GET['id_jadwal'];
+
+// ✅ Ambil Data Jadwal Berdasarkan ID
+$query_jadwal = "SELECT * FROM jadwal WHERE id_jadwal = ?";
+$stmt = $conn->prepare($query_jadwal);
+$stmt->bind_param("s", $id_jadwal);
+$stmt->execute();
+$result = $stmt->get_result();
+$data_jadwal = $result->fetch_assoc();
+
+if (!$data_jadwal) {
+    die("Error: Data jadwal tidak ditemukan.");
+}
+
+// ✅ Ambil Data Guru yang Bertugas dalam Detail Jadwal
+$query_detail = "SELECT id_guru FROM detail_jadwal WHERE id_jadwal = ?";
+$stmt_detail = $conn->prepare($query_detail);
+$stmt_detail->bind_param("s", $id_jadwal);
+$stmt_detail->execute();
+$result_detail = $stmt_detail->get_result();
+$selected_guru = [];
+
+while ($row = $result_detail->fetch_assoc()) {
+    $selected_guru[] = $row['id_guru'];
+}
+
+// ✅ Ambil Data untuk Dropdown
+$query_guru = "SELECT id_guru, nama_guru FROM guru";
+$result_guru = $conn->query($query_guru);
+
+$query_paket = "SELECT id_paket, paket FROM paket_bimbel";
+$result_paket = $conn->query($query_paket);
+
+// Ambil hanya guru yang statusnya bukan "Tidak Aktif" (id_status_guru ≠ 2)
+$query_guru = "SELECT g.id_guru, g.nama_guru 
+               FROM guru g 
+               WHERE g.id_status_guru != 2";
+$result_guru = $conn->query($query_guru);
+
+// ✅ Jika Form Disubmit (Update Data)
+if (isset($_POST['update_jadwal'])) {
+    $id_paket = $_POST['id_paket'];
     $tanggal_jadwal = $_POST['tanggal_jadwal'];
     $jam_masuk = $_POST['jam_masuk'];
     $jam_keluar = $_POST['jam_keluar'];
+    $id_guru_list = $_POST['id_guru']; // Array ID Guru
 
-    // Mulai transaksi untuk keamanan
-    $conn->begin_transaction();
-
-    try {
-        // **1. Update data di tabel jadwal**
-        $query_update_jadwal = "UPDATE jadwal
-            SET id_guru = ?, id_murid = ?, nama_murid = ?, tanggal_jadwal = ?, jam_masuk = ?, jam_keluar = ?
-            WHERE id_jadwal = ?";
-
-        $stmt_jadwal = $conn->prepare($query_update_jadwal);
-        if (!$stmt_jadwal) {
-            throw new Exception("Error preparing statement (jadwal): " . $conn->error);
-        }
-
-        $stmt_jadwal->bind_param("sssssss", $id_guru, $id_murid, $nama_murid, $tanggal_jadwal, $jam_masuk, $jam_keluar, $id_jadwal);
-        if (!$stmt_jadwal->execute()) {
-            throw new Exception("Error executing update (jadwal): " . $stmt_jadwal->error);
-        }
-        $stmt_jadwal->close();
-
-        // Commit transaksi jika semua update berhasil
-        $conn->commit();
-        echo "<script>alert('Data berhasil diperbarui!'); window.location.href='hasil_data_jadwal.php';</script>";
-
-    } catch (Exception $e) {
-        // Rollback transaksi jika ada kesalahan
-        $conn->rollback();
-        echo "<script>alert('Gagal mengupdate data! Error: " . addslashes($e->getMessage()) . "'); window.history.back();</script>";
+    // Validasi Input
+    if (empty($id_guru_list) || empty($id_paket) || empty($tanggal_jadwal) || empty($jam_masuk) || empty($jam_keluar)) {
+        echo "<script>alert('Harap isi semua data!'); window.history.back();</script>";
+        exit();
     }
 
+    // ✅ Update Data di Tabel `jadwal`
+    $query_update_jadwal = "UPDATE jadwal SET id_paket=?, tanggal_jadwal=?, jam_masuk=?, jam_keluar=? WHERE id_jadwal=?";
+    $stmt_update_jadwal = $conn->prepare($query_update_jadwal);
+    $stmt_update_jadwal->bind_param("sssss", $id_paket, $tanggal_jadwal, $jam_masuk, $jam_keluar, $id_jadwal);
+
+    if (!$stmt_update_jadwal->execute()) {
+        die("Gagal memperbarui jadwal: " . $stmt_update_jadwal->error);
+    }
+    $stmt_update_jadwal->close();
+
+    // ✅ Hapus Data Detail Jadwal Lama
+    $query_delete_detail = "DELETE FROM detail_jadwal WHERE id_jadwal = ?";
+    $stmt_delete = $conn->prepare($query_delete_detail);
+    $stmt_delete->bind_param("s", $id_jadwal);
+    $stmt_delete->execute();
+    $stmt_delete->close();
+
+    // ✅ Masukkan Data Baru ke Tabel `detail_jadwal`
+    $query_insert_detail = "INSERT INTO detail_jadwal (id_jadwal, id_paket, id_guru, tanggal_jadwal, jam_masuk, jam_keluar) 
+                            VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt_detail = $conn->prepare($query_insert_detail);
+
+    foreach ($id_guru_list as $id_guru) {
+        $stmt_detail->bind_param("ssssss", $id_jadwal, $id_paket, $id_guru, $tanggal_jadwal, $jam_masuk, $jam_keluar);
+        if (!$stmt_detail->execute()) {
+            die("Gagal menambahkan detail jadwal: " . $stmt_detail->error);
+        }
+    }
+    $stmt_detail->close();
     $conn->close();
+
+    echo "<script>alert('Jadwal berhasil diperbarui!'); window.location.href='hasil_data_jadwal.php';</script>";
 }
 ?>
 
@@ -73,7 +101,7 @@ if (isset($_POST['update'])) {
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - NiceAdmin Bootstrap Template</title>
+  <title>Dashboard - Owner</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -108,180 +136,14 @@ if (isset($_POST['update'])) {
 
 <body>
 
-  <!-- ======= Header ======= -->
-  <header id="header" class="header fixed-top d-flex align-items-center">
-
-    <div class="d-flex align-items-center justify-content-between">
-      <a href="index.html" class="logo d-flex align-items-center">
-        <img src="assets/img/logo.png" alt="">
-        <span class="d-none d-lg-block">NiceAdmin</span>
-      </a>
+</div>
+      <header id="header" class="header fixed-top d-flex align-items-center">
+        <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
+            style="height: 60px; width: auto; display: block;">
+        <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+      </div>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
-
-    <div class="search-bar">
-      <form class="search-form d-flex align-items-center" method="POST" action="#">
-        <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-        <button type="submit" title="Search"><i class="bi bi-search"></i></button>
-      </form>
-    </div><!-- End Search Bar -->
-
-    <nav class="header-nav ms-auto">
-      <ul class="d-flex align-items-center">
-
-        <li class="nav-item d-block d-lg-none">
-          <a class="nav-link nav-icon search-bar-toggle " href="#">
-            <i class="bi bi-search"></i>
-          </a>
-        </li><!-- End Search Icon-->
-
-        <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-bell"></i>
-            <span class="badge bg-primary badge-number">4</span>
-          </a><!-- End Notification Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
-            <li class="dropdown-header">
-              You have 4 new notifications
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-exclamation-circle text-warning"></i>
-              <div>
-                <h4>Lorem Ipsum</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>30 min. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-x-circle text-danger"></i>
-              <div>
-                <h4>Atque rerum nesciunt</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>1 hr. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-check-circle text-success"></i>
-              <div>
-                <h4>Sit rerum fuga</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>2 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-info-circle text-primary"></i>
-              <div>
-                <h4>Dicta reprehenderit</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>4 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li class="dropdown-footer">
-              <a href="#">Show all notifications</a>
-            </li>
-
-          </ul><!-- End Notification Dropdown Items -->
-
-        </li><!-- End Notification Nav -->
-
-        <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-chat-left-text"></i>
-            <span class="badge bg-success badge-number">3</span>
-          </a><!-- End Messages Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
-            <li class="dropdown-header">
-              You have 3 new messages
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-1.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>Maria Hudson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>4 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-2.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>Anna Nelson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>6 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-3.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>David Muldon</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>8 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="dropdown-footer">
-              <a href="#">Show all messages</a>
-            </li>
-
-          </ul><!-- End Messages Dropdown Items -->
-
-        </li><!-- End Messages Nav -->
-
-        <li class="nav-item dropdown pe-3">
-
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">K. Anderson</span>
-          </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
@@ -357,10 +219,16 @@ if (isset($_POST['update'])) {
             <span>Input</span>
           </a>
         </li>
-        <li>
-          <a href="hasil_data_registrasi.php">
+        </li>
+        <a href="konfirmasi_registrasi.php">
             <i class="bi bi-circle"></i>
-            <span>Hasil Data</span>
+            <span>Konfirmasi Registrasi </span>
+          </a>
+        </li>
+        </li>
+        <a href="view_konfirmasi_registrasi.php">
+            <i class="bi bi-circle"></i>
+            <span>View Konfirmasi Registrasi </span>
           </a>
         </li>
       </ul>
@@ -391,34 +259,20 @@ if (isset($_POST['update'])) {
 
     <!-- Pembayaran -->
     <li class="nav-item">
-      <a class="nav-link" href="hasil_data_pembayaran.php">
-        <i class="bi bi-cash"></i>
-        <span>Pembayaran</span>
-      </a>
-    </li><!-- End Pembayaran -->
-
-    <!-- Presensi -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#presensi-nav" data-bs-toggle="collapse" href="#">
+      <a class="nav-link collapsed" data-bs-target="#pembayaran-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-menu-button-wide"></i>
-        <span>Presensi</span>
+        <span>Pembayaran</span>
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <ul id="presensi-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+      <ul id="pembayaran-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a href="presensi_input.php">
-            <i class="bi bi-circle"></i>
-            <span>Input</span>
-          </a>
-        </li>
-        <li>
-          <a href="presensi_hasil.php">
+          <a href="hasil_data_pembayaran.php">
             <i class="bi bi-circle"></i>
             <span>Hasil Data</span>
           </a>
         </li>
       </ul>
-    </li><!-- End Presensi -->
+    </li><!-- End Pembayaran -->
 
     <!-- Jadwal -->
     <li class="nav-item">
@@ -446,6 +300,12 @@ if (isset($_POST['update'])) {
             <span>Paket</span>
           </a>
         </li>
+        <li>
+          <a href="master_user.php">
+            <i class="bi bi-circle"></i>
+            <span>User</span>
+          </a>
+        </li>
       </ul>
     </li><!-- End Jadwal -->
 
@@ -460,60 +320,130 @@ if (isset($_POST['update'])) {
 </aside><!-- End Sidebar -->
 
 <main id="main" class="main">
-    <div class="pagetitle">
-        <h1>Edit Data Jadwal</h1>
-    </div>
 
-    <form method="POST" action="" enctype="multipart/form-data">
-        <div class="card p-5 mb-5">
-            <!-- ID Jadwal -->
-            <div class="mb-3">
-                <label>ID Jadwal</label>
-                <input type="text" class="form-control" name="id_jadwal" value="<?= htmlspecialchars($jadwal['id_jadwal'] ?? '') ?>" readonly>
-            </div>
+<div class="pagetitle">
+    <h1>Edit Jadwal</h1>
+</div>
 
-            <!-- ID Guru -->
-            <div class="mb-3">
-                <label>ID Guru</label>
-                <input type="text" class="form-control" name="id_guru" value="<?= htmlspecialchars($jadwal['id_guru'] ?? '') ?>" readonly>
-            </div>
+<div class="card p-5 mb-5">
+    <form method="POST" action="edit_jadwal.php?id_jadwal=<?= htmlspecialchars($id_jadwal) ?>">
 
-            <!-- ID Murid -->
-            <div class="mb-3">
-                <label>ID Murid</label>
-                <input type="text" class="form-control" name="id_murid" value="<?= htmlspecialchars($jadwal['id_murid'] ?? '') ?>" readonly>
-            </div>
-
-            <!-- Nama Murid -->
-            <div class="mb-3">
-                <label>Nama Murid</label>
-                <input type="text" class="form-control" name="nama_murid" value="<?= htmlspecialchars($jadwal['nama_murid'] ?? '') ?>" readonly>
-            </div>
-
-            <!-- Tanggal Jadwal -->
-            <div class="form-group mb-3">
-                <label for="tanggal_jadwal">Tanggal Jadwal</label>
-                <input type="date" class="form-control" id="tanggal_jadwal" name="tanggal_jadwal" value="<?= isset($jadwal['tanggal_jadwal']) ? date('Y-m-d', strtotime($jadwal['tanggal_jadwal'])) : '' ?>" required>
-            </div>
-
-            <!-- Jam Masuk -->
-            <div class="form-group mb-3">
-                <label for="jam_masuk">Jam Masuk</label>
-                <input type="time" class="form-control" id="jam_masuk" name="jam_masuk" value="<?= htmlspecialchars($jadwal['jam_masuk'] ?? '') ?>" required>
-            </div>
-
-            <!-- Jam Keluar -->
-            <div class="form-group mb-3">
-                <label for="jam_keluar">Jam Keluar</label>
-                <input type="time" class="form-control" id="jam_keluar" name="jam_keluar" value="<?= htmlspecialchars($jadwal['jam_keluar'] ?? '') ?>" required>
-            </div>
-
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary" name="update">Update</button>
-            </div>
+        <!-- ID Jadwal -->
+        <div class="form-group mb-3">
+            <label>ID Jadwal</label>
+            <input type="text" class="form-control" value="<?= htmlspecialchars($id_jadwal) ?>" readonly>
         </div>
+
+        <!-- Pilih Paket (Tambahkan Label) -->
+        <div class="form-group mb-3">
+            <label>Paket Bimbel</label>
+            <select class="form-control" name="id_paket" required>
+                <option value="">-- Pilih Paket --</option>
+                <?php while ($row = $result_paket->fetch_assoc()): ?>
+                    <option value="<?= htmlspecialchars($row['id_paket']) ?>"
+                        <?= $data_jadwal['id_paket'] == $row['id_paket'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($row['paket']) ?>
+                    </option>
+                <?php endwhile; ?>
+            </select>
+        </div>
+
+        <!-- Pilih ID Guru -->
+<div class="form-group mb-3" id="guru-container">
+    <label for="id_guru">Pilih ID Guru</label>
+    <div class="guru-entry mb-2 d-flex align-items-center">
+        <select class="form-control me-2" name="id_guru[]" required onchange="autofillNamaGuru(this)">
+            <option value="">-- Pilih ID Guru --</option>
+            <?php while ($row = $result_guru->fetch_assoc()): ?>
+                <option value="<?= htmlspecialchars($row['id_guru']) ?>" data-nama="<?= htmlspecialchars($row['nama_guru']) ?>">
+                    <?= htmlspecialchars($row['id_guru']) ?> - <?= htmlspecialchars($row['nama_guru']) ?>
+                </option>
+            <?php endwhile; ?>
+        </select>
+        <input type="text" class="form-control me-2" name="nama_guru[]" placeholder="Nama Guru" readonly>
+        <button type="button" class="btn btn-danger" onclick="removeGuru(this)">Hapus</button>
+    </div>
+</div>
+
+          <!-- Tombol Tambah Guru -->
+          <div class="d-grid gap-2 mb-3">
+              <button type="button" class="btn btn-success" onclick="addGuru()">Tambah Guru</button>
+          </div>
+
+        <!-- Tanggal Jadwal -->
+        <div class="form-group mb-3">
+            <label>Tanggal Jadwal</label>
+            <input type="date" class="form-control" name="tanggal_jadwal" 
+                   value="<?= htmlspecialchars($data_jadwal['tanggal_jadwal']) ?>" required>
+        </div>
+
+        <!-- Jam Masuk -->
+        <div class="form-group mb-3">
+            <label>Jam Masuk</label>
+            <input type="time" class="form-control" name="jam_masuk" 
+                   value="<?= htmlspecialchars($data_jadwal['jam_masuk']) ?>" required>
+        </div>
+
+        <!-- Jam Keluar -->
+        <div class="form-group mb-3">
+            <label>Jam Keluar</label>
+            <input type="time" class="form-control" name="jam_keluar" 
+                   value="<?= htmlspecialchars($data_jadwal['jam_keluar']) ?>" required>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary" name="update_jadwal">Update Jadwal</button>
+            <a href="hasil_data_jadwal.php" class="btn btn-secondary">Batal</a>
+        </div>
+
     </form>
+</div>
 </main>
 
+<script>
+function autofillNamaGuru(selectElement) {
+    let selectedOption = selectElement.options[selectElement.selectedIndex];
+    let namaInput = selectElement.parentElement.querySelector('input[name="nama_guru[]"]');
+
+    if (selectedOption.value !== "") {
+        namaInput.value = selectedOption.getAttribute("data-nama");
+    } else {
+        namaInput.value = "";
+    }
+}
+
+function addGuru() {
+    let container = document.getElementById("guru-container");
+    let guruEntries = container.querySelectorAll(".guru-entry");
+    let lastGuru = guruEntries[guruEntries.length - 1];
+    let newGuru = lastGuru.cloneNode(true);
+
+    // Reset nilai dropdown dan input
+    let select = newGuru.querySelector('select');
+    let input = newGuru.querySelector('input[name="nama_guru[]"]');
+    select.value = "";
+    input.value = "";
+
+    // Tambahkan event listener untuk dropdown guru baru
+    select.onchange = function() {
+        autofillNamaGuru(this);
+    };
+
+    container.appendChild(newGuru);
+}
+
+function removeGuru(button) {
+    let container = document.getElementById("guru-container");
+    let guruEntries = container.querySelectorAll(".guru-entry");
+
+    // Hapus hanya jika lebih dari 1 input yang tersedia
+    if (guruEntries.length > 1) {
+        button.parentElement.remove();
+    } else {
+        alert("Minimal harus ada satu guru yang dipilih.");
+    }
+}
+</script>
 </body>
 </html>

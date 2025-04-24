@@ -1,38 +1,100 @@
 <?php
-include 'connection.php'; // File koneksi database
+include 'connection.php'; // Koneksi ke database
 
-// Ambil data murid yang sudah terdaftar
-$query_murid = "SELECT id_murid, nama, paket_bimbel.paket as nama_paket FROM registrasi_murid 
-                LEFT JOIN paket_bimbel ON paket_bimbel.id_paket = registrasi_murid.id_paket";
-$result_murid = $conn->query($query_murid);
+// ✅ Fungsi untuk Membuat ID Jadwal Otomatis (01, 02, 03, dst.)
+function generateIdJadwal($conn) {
+  $query = "SELECT LPAD(COALESCE(MAX(CAST(id_jadwal AS UNSIGNED)) + 1, 1), 2, '0') AS id_jadwal FROM jadwal";
+  $result = $conn->query($query);
 
-// Ambil data guru
+  if ($result && $result->num_rows > 0) {
+      $row = $result->fetch_assoc();
+      return $row['id_jadwal']; // Mengembalikan ID jadwal yang baru
+  } else {
+      return '01'; // Default ID jika belum ada data
+  }
+}
+
+// Memanggil fungsi untuk mendapatkan ID baru
+$newId = generateIdJadwal($conn);
+
+// ✅ Fungsi untuk Membuat ID Detail Jadwal Otomatis
+function generateIdDetail($conn) {
+    $query = "SELECT LPAD(COALESCE(MAX(CAST(id_detail AS UNSIGNED)) + 1, 1), 3, '0') AS id_detail FROM detail_jadwal";
+    $result = $conn->query($query);
+    
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['id_detail']; // ID baru untuk detail jadwal
+    } else {
+        return '001'; // Default jika belum ada data
+    }
+}
+
+// ✅ Ambil Data untuk Dropdown
+$query_jadwal = "SELECT r.id_jadwal, r.id_paket, p.paket AS nama_paket 
+                 FROM jadwal r
+                 LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket";  
+$result_jadwal = $conn->query($query_jadwal);
+
 $query_guru = "SELECT id_guru, nama_guru FROM guru";
 $result_guru = $conn->query($query_guru);
 
+// Ambil hanya guru yang statusnya bukan "Tidak Aktif" (id_status_guru ≠ 2)
+$query_guru = "SELECT g.id_guru, g.nama_guru 
+               FROM guru g 
+               WHERE g.id_status_guru != 2";
+$result_guru = $conn->query($query_guru);
+
+$query_paket = "SELECT id_paket, paket FROM paket_bimbel";
+$result_paket = $conn->query($query_paket);
+
+// ✅ Jika Form Disubmit
 if (isset($_POST['tambah_jadwal'])) {
-    $id_guru = $_POST['id_guru'];
-    $nama_murid = $_POST['nama_murid'];
+    $id_jadwal = generateIdJadwal($conn); // Auto-generate ID jadwal
+    $id_guru_list = $_POST['id_guru']; // Array ID guru
+    $id_paket = $_POST['id_paket'];
     $tanggal_jadwal = $_POST['tanggal_jadwal'];
     $jam_masuk = $_POST['jam_masuk'];
     $jam_keluar = $_POST['jam_keluar'];
 
-    $query_insert = "INSERT INTO jadwal (id_guru, nama_murid, tanggal_jadwal, jam_masuk,jam_keluar)
-                     VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($query_insert);
-    $stmt->bind_param("sssss", $id_guru, $nama_murid, $tanggal_jadwal, $jam_masuk, $jam_keluar);
-
-    if ($stmt->execute()) {
-        echo "<script>alert('Jadwal berhasil ditambahkan!'); window.location.href='hasil_data_registrasi.php';</script>";
-    } else {
-        die("Gagal menambahkan jadwal: " . $stmt->error);
+    // Validasi Input
+    if (empty($id_guru_list) || empty($id_paket) || empty($tanggal_jadwal) || empty($jam_masuk) || empty($jam_keluar)) {
+        echo "<script>alert('Harap isi semua data!'); window.history.back();</script>";
+        exit();
     }
 
-    $stmt->close();
+    // ✅ Masukkan Data ke Tabel `jadwal`
+    $query_insert_jadwal = "INSERT INTO jadwal (id_jadwal, id_guru, id_paket, tanggal_jadwal, jam_masuk, jam_keluar) 
+                            VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt_jadwal = $conn->prepare($query_insert_jadwal);
+    $stmt_jadwal->bind_param("ssssss", $id_jadwal, $id_guru_list, $id_paket, $tanggal_jadwal, $jam_masuk, $jam_keluar);
+
+    if (!$stmt_jadwal->execute()) {
+        die("Gagal menambahkan jadwal: " . $stmt_jadwal->error);
+    }
+    $stmt_jadwal->close();
+
+    // ✅ Masukkan Data ke Tabel `detail_jadwal`
+    $query_insert_detail = "INSERT INTO detail_jadwal (id_jadwal, id_guru, id_paket, tanggal_jadwal, jam_masuk, jam_keluar) 
+    VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt_detail = $conn->prepare($query_insert_detail); // Gunakan variabel baru $stmt_detail
+
+    foreach ($id_guru_list as $id_guru) {
+    $stmt_detail->bind_param("ssssss", $id_jadwal, $id_paket, $id_guru_list, $tanggal_jadwal, $jam_masuk, $jam_keluar);
+
+    if (!$stmt_detail->execute()) {
+    die("Gagal menambahkan detail jadwal: " . $stmt_detail->error);
+    }
+    }
+
+
+
+    $stmt_detail->close();
     $conn->close();
+
+    echo "<script>alert('Jadwal dan detail jadwal berhasil ditambahkan!'); window.location.href='hasil_data_jadwal.php';</script>";
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -41,7 +103,7 @@ if (isset($_POST['tambah_jadwal'])) {
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - NiceAdmin Bootstrap Template</title>
+  <title>Dashboard - Owner</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -76,180 +138,14 @@ if (isset($_POST['tambah_jadwal'])) {
 
 <body>
 
-  <!-- ======= Header ======= -->
-  <header id="header" class="header fixed-top d-flex align-items-center">
-
-    <div class="d-flex align-items-center justify-content-between">
-      <a href="index.html" class="logo d-flex align-items-center">
-        <img src="assets/img/logo.png" alt="">
-        <span class="d-none d-lg-block">NiceAdmin</span>
-      </a>
+</div>
+      <header id="header" class="header fixed-top d-flex align-items-center">
+        <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
+            style="height: 60px; width: auto; display: block;">
+        <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+      </div>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
-
-    <div class="search-bar">
-      <form class="search-form d-flex align-items-center" method="POST" action="#">
-        <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-        <button type="submit" title="Search"><i class="bi bi-search"></i></button>
-      </form>
-    </div><!-- End Search Bar -->
-
-    <nav class="header-nav ms-auto">
-      <ul class="d-flex align-items-center">
-
-        <li class="nav-item d-block d-lg-none">
-          <a class="nav-link nav-icon search-bar-toggle " href="#">
-            <i class="bi bi-search"></i>
-          </a>
-        </li><!-- End Search Icon-->
-
-        <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-bell"></i>
-            <span class="badge bg-primary badge-number">4</span>
-          </a><!-- End Notification Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
-            <li class="dropdown-header">
-              You have 4 new notifications
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-exclamation-circle text-warning"></i>
-              <div>
-                <h4>Lorem Ipsum</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>30 min. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-x-circle text-danger"></i>
-              <div>
-                <h4>Atque rerum nesciunt</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>1 hr. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-check-circle text-success"></i>
-              <div>
-                <h4>Sit rerum fuga</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>2 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-info-circle text-primary"></i>
-              <div>
-                <h4>Dicta reprehenderit</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>4 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li class="dropdown-footer">
-              <a href="#">Show all notifications</a>
-            </li>
-
-          </ul><!-- End Notification Dropdown Items -->
-
-        </li><!-- End Notification Nav -->
-
-        <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-chat-left-text"></i>
-            <span class="badge bg-success badge-number">3</span>
-          </a><!-- End Messages Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
-            <li class="dropdown-header">
-              You have 3 new messages
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-1.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>Maria Hudson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>4 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-2.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>Anna Nelson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>6 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="assets/img/messages-3.jpg" alt="" class="rounded-circle">
-                <div>
-                  <h4>David Muldon</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>8 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="dropdown-footer">
-              <a href="#">Show all messages</a>
-            </li>
-
-          </ul><!-- End Messages Dropdown Items -->
-
-        </li><!-- End Messages Nav -->
-
-        <li class="nav-item dropdown pe-3">
-
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">K. Anderson</span>
-          </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
@@ -290,8 +186,6 @@ if (isset($_POST['tambah_jadwal'])) {
               <hr class="dropdown-divider">
             </li>
 
-           
-
           </ul><!-- End Profile Dropdown Items -->
         </li><!-- End Profile Nav -->
 
@@ -325,12 +219,18 @@ if (isset($_POST['tambah_jadwal'])) {
             <span>Input</span>
           </a>
         </li>
-        <li>
-          <a href="hasil_data_registrasi.php">
+        </li>
+        <a href="konfirmasi_registrasi.php">
             <i class="bi bi-circle"></i>
-            <span>Hasil Data</span>
+            <span>Konfirmasi Registrasi </span>
           </a>
         </li>
+        </li>
+        <a href="view_konfirmasi_registrasi.php">
+            <i class="bi bi-circle"></i>
+            <span>View Konfirmasi Registrasi </span>
+          </a>
+         </li>
       </ul>
     </li><!-- End Registrasi Murid -->
 
@@ -359,34 +259,20 @@ if (isset($_POST['tambah_jadwal'])) {
 
     <!-- Pembayaran -->
     <li class="nav-item">
-      <a class="nav-link" href="hasil_data_pembayaran.php">
-        <i class="bi bi-cash"></i>
-        <span>Pembayaran</span>
-      </a>
-    </li><!-- End Pembayaran -->
-
-    <!-- Presensi -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#presensi-nav" data-bs-toggle="collapse" href="#">
+      <a class="nav-link collapsed" data-bs-target="#pembayaran-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-menu-button-wide"></i>
-        <span>Presensi</span>
+        <span>Pembayaran</span>
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <ul id="presensi-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+      <ul id="pembayaran-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a href="input_presensi.php">
-            <i class="bi bi-circle"></i>
-            <span>Input</span>
-          </a>
-        </li>
-        <li>
-          <a href="presensi_hasil.php">
+          <a href="hasil_data_pembayaran.php">
             <i class="bi bi-circle"></i>
             <span>Hasil Data</span>
           </a>
         </li>
       </ul>
-    </li><!-- End Presensi -->
+    </li><!-- End Pembayaran -->
 
     <!-- Jadwal -->
     <li class="nav-item">
@@ -414,7 +300,12 @@ if (isset($_POST['tambah_jadwal'])) {
             <span>Paket</span>
           </a>
         </li>
-
+        <li>
+          <a href="master_user.php">
+            <i class="bi bi-circle"></i>
+            <span>User</span>
+          </a>
+        </li>
       </ul>
     </li><!-- End Jadwal -->
 
@@ -429,92 +320,88 @@ if (isset($_POST['tambah_jadwal'])) {
 </aside><!-- End Sidebar -->
 
 
-  <main id="main" class="main">
-
+<main id="main" class="main">
     <div class="pagetitle">
-      <h1>Input Jadwal</h1>
-    </div><!-- End Page Title -->
+        <h1>Input Jadwal</h1>
+    </div>
 
     <div class="card p-5 mb-5">
-      <form method="POST" action="input_jadwal.php">
+        <form method="POST" action="input_jadwal.php">
 
-      <!-- Pilih Guru -->
-        <div class="form-group mb-3">
-            <label for="id_guru">Pilih Guru</label>
-            <select class="form-control" id="id_guru" name="id_guru" required>
-                <option value="">-- Pilih Guru --</option>
-                <?php while ($row = $result_guru->fetch_assoc()): ?>
-                    <option value="<?= $row['id_guru']; ?>"><?= $row['nama_guru']; ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
+            <!-- ID Jadwal -->
+            <div class="form-group mb-3">
+                <label for="id_jadwal">ID Jadwal</label>
+                <input type="text" class="form-control" id="id_jadwal" name="id_jadwal" value="<?= htmlspecialchars($newId) ?>" readonly>
+            </div>
 
-        <!-- Nama Murid -->
-        <div class="form-group mb-3">
-            <label for="nama_murid">Nama Murid</label>
-            <input type="text" class="form-control" id="nama_murid" name="nama_murid" required>
-        </div>
+            <!-- Pilih ID Paket -->
+            <div class="form-group mb-3">
+                <label for="id_paket">Pilih Paket</label>
+                <select class="form-control" id="id_paket" name="id_paket" required>
+                    <option value="">-- Pilih Paket --</option>
+                    <?php while ($row = $result_paket->fetch_assoc()): ?>
+                        <option value="<?= htmlspecialchars($row['id_paket']) ?>">
+                            <?= htmlspecialchars($row['id_paket']) ?> - <?= htmlspecialchars($row['paket']) ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
 
-        <!-- Tanggal Jadwal -->
-        <div class="form-group mb-3">
-            <label for="tanggal_jadwal">Tanggal Jadwal</label>
-            <input type="date" class="form-control" id="tanggal_jadwal" name="tanggal_jadwal" required>
-        </div>
+            <!-- Pilih ID Guru -->
+            <div class="form-group mb-3">
+                <label for="id_guru">Pilih ID Guru</label>
+                <select class="form-control" id="id_guru" name="id_guru" required onchange="autofillNamaGuru(this)">
+                    <option value="">-- Pilih ID Guru --</option>
+                    <?php while ($row = $result_guru->fetch_assoc()): ?>
+                        <option value="<?= htmlspecialchars($row['id_guru']) ?>" data-nama="<?= htmlspecialchars($row['nama_guru']) ?>">
+                            <?= htmlspecialchars($row['id_guru']) ?> - <?= htmlspecialchars($row['nama_guru']) ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
 
-        <!-- Jam Masuk -->
-        <div class="form-group mb-3">
-            <label for="jam_masuk">Jam Masuk</label>
-            <input type="time" class="form-control" id="jam_masuk" name="jam_masuk" required>
-        </div>
+            <!-- Nama Guru (Otomatis Terisi) -->
+            <div class="form-group mb-3">
+                <label for="nama_guru">Nama Guru</label>
+                <input type="text" class="form-control" id="nama_guru" name="nama_guru" placeholder="Nama Guru" readonly>
+            </div>
 
-        <!-- Jam Keluar -->
-        <div class="form-group mb-3">
-            <label for="jam_keluar">Jam Keluar</label>
-            <input type="time" class="form-control" id="jam_keluar" name="jam_keluar" required>
-        </div>
+            <!-- Tanggal Jadwal -->
+            <div class="form-group mb-3">
+                <label for="tanggal_jadwal">Tanggal Jadwal</label>
+                <input type="date" class="form-control" id="tanggal_jadwal" name="tanggal_jadwal" required>
+            </div>
 
-        <!-- Submit Button -->
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary" name="tambah_jadwal">Tambah Jadwal</button>
-            <a href="hasil_data_registrasi.php" class="btn btn-secondary">Batal</a>
-        </div>
+            <!-- Jam Masuk -->
+            <div class="form-group mb-3">
+                <label for="jam_masuk">Jam Masuk</label>
+                <input type="time" class="form-control" id="jam_masuk" name="jam_masuk" required>
+            </div>
 
-      </form>
+            <!-- Jam Keluar -->
+            <div class="form-group mb-3">
+                <label for="jam_keluar">Jam Keluar</label>
+                <input type="time" class="form-control" id="jam_keluar" name="jam_keluar" required>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary" name="tambah_jadwal">Tambah Jadwal</button>
+                <a href="hasil_data_registrasi.php" class="btn btn-secondary">Batal</a>
+            </div>
+
+        </form>
     </div>
-  </main>
-=
-<!-- Pilihan Paket (Akan berubah sesuai Tanggal Registrasi yang dipilih) -->
-<div class="form-group mb-3">
-    <label for="nama_paket">Paket Bimbel</label>
-    <select class="form-control" id="nama_paket" name="nama_paket" required>
-        <option value="">-- Pilih Paket --</option>
-    </select>
-</div>
+</main>
 
-  <!-- JavaScript untuk menampilkan paket berdasarkan tanggal registrasi -->
+<!-- JavaScript untuk mengisi Nama Guru Otomatis -->
 <script>
-function updatePaket() {
-    let tanggal_registrasi = document.getElementById("tanggal_registrasi").value;
-    let paketDropdown = document.getElementById("nama_paket");
-
-    // Kosongkan isi dropdown paket
-    paketDropdown.innerHTML = '<option value="">-- Pilih Paket --</option>';
-
-    if (tanggal_registrasi) {
-        fetch('input_registrasi.php?tanggal_registrasi=' + tanggal_registrasi)
-        .then(response => response.json())
-        .then(data => {
-            data.forEach(paket => {
-                let option = document.createElement("option");
-                option.value = paket.id_paket;
-                option.textContent = paket.nama_paket;
-                paketDropdown.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Error fetching data:', error));
-    }
+function autofillNamaGuru(selectElement) {
+    let selectedOption = selectElement.options[selectElement.selectedIndex];
+    document.getElementById("nama_guru").value = selectedOption.getAttribute("data-nama") || "";
 }
 </script>
+
 
  <!-- Vendor JS Files -->
 <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>

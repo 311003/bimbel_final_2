@@ -1,46 +1,48 @@
 <?php
-include 'connection.php';
- 
 session_start();
- 
-if (isset($_POST['login'])) {
-    $username = $_POST['username'];
+require_once 'connection.php';
+
+if (isset($_POST['username']) && isset($_POST['password'])) {
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
- 
-    // Query untuk mencari user berdasarkan username
-    $query = "SELECT * FROM tm_user WHERE username='$username'";
-    $result = mysqli_query($conn, $query);
- 
-    if ($result && mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
- 
-        // Verifikasi password (gunakan password_hash di database untuk keamanan)
-        if ($password === $row['password']) {
-            $_SESSION['username'] = $row['username'];
-            $_SESSION['role'] = $row['role'];
- 
-            // Redirect sesuai role
-            switch ($row["role"]) {
-                case "1":
-                    header("Location: dashboard_owner.php");
-                    break;
-                case "2":
-                    header("Location: dashboard_guru.php");
-                    break;
-                case "3":
-                    header("Location: dashboard_murid.php");
-                    break;
-                default:
-                    header("Location: dashboard.php"); // Jika role tidak dikenali
-                    break;
-            }
+
+    // Ambil data user dari database
+    $query = "SELECT * FROM tm_user WHERE username = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+
+        if (password_verify($password, $user['password'])) {
+            // Simpan sesi
+            $_SESSION['tm_user'] = $user['tm_user'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['id_ref'] = $user['id_ref']; // bisa id_guru atau id_murid
+
+           // Redirect sesuai role
+           switch ($user["role"]) {
+            case "1":
+                header("Location: dashboard_owner.php");
+                break;
+            case "2":
+                header("Location: dashboard_guru.php");
+                break;
+            case "3":
+                header("Location: dashboard_murid.php");
+                break;
+            default:
+                 header("Location: login.php");
+                break;
+        }
             exit;
         } else {
-            // Jika password salah
             echo "<script>alert('Password salah!'); window.location='login.php';</script>";
         }
     } else {
-        // Jika username tidak ditemukan
         echo "<script>alert('Username tidak ditemukan!'); window.location='login.php';</script>";
     }
 }
@@ -96,47 +98,46 @@ if (isset($_POST['login'])) {
           <div class="row justify-content-center">
             <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
 
-              <div class="d-flex justify-content-center py-4">
-                <a href="index.html" class="logo d-flex align-items-center w-auto">
-                  <img src="assets/img/logo.png" alt="">
-                  <span class="d-none d-lg-block">BimbelinAja</span>
-                </a>
-              </div><!-- End Logo -->
-
+            </div>
+              <header id="header" class="header fixed-top d-flex align-items-center">
+                <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
+                    style="height: 60px; width: auto; display: block;">
+                <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+              </div>
+            </div><!-- End Logo -->
+            
               <div class="card mb-3">
 
-                <div class="card-body">
-                <form action="login.php" method="POST" class="row g-3 needs-validation" novalidate>
+              <form action="login_process.php" method="POST" class="row g-3 needs-validation" novalidate>
+                <div class="pt-4 pb-2">
+                  <h5 class="card-title text-center pb-0 fs-4">Login to Your Account</h5>
+                  <p class="text-center small">Masukkan Username & Password Anda</p>
+                </div>
 
-                  <div class="pt-4 pb-2">
-                    <h5 class="card-title text-center pb-0 fs-4">Login to Your Account</h5>
-                    <p class="text-center small">Enter your username & password to login</p>
-                  </div>
+               <!-- Bungkus semua dengan offset agar lebih ke tengah -->
+                  <div class="row">
+                    <div class="col-md-10 offset-md-1">
 
-                  <form class="row g-3 needs-validation" novalidate>
-
-                    <div class="col-12">
-                      <label for="yourUsername" class="form-label">Username</label>
-                      <div class="input-group has-validation">
-                        <input type="text" name="username" class="form-control" id="yourUsername" required>
-                        <div class="invalid-feedback">Please enter your username.</div>
+                      <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" required>
                       </div>
-                    </div>
 
-                    <div class="col-12">
-                      <label for="yourPassword" class="form-label">Password</label>
-                      <input type="password" name="password" class="form-control" id="yourPassword" required>
-                      <div class="invalid-feedback">Please enter your password!</div>
-                    </div>
+                      <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                      </div>
 
-                    <div class="col-12">
-                      <button class="btn btn-primary w-100" type="submit" name="login">Login</button>
+                     <!-- Teks informatif -->
+                     <div class="mb-2">
+                        <small class="text-muted">
+                          Anda belum memiliki akun untuk login? Silakan <a href="register.php">register terlebih dahulu!</a>
+                        </small>
+                      </div>
+                    <div class="col text-end">
+                      <button type="submit" class="btn btn-success">Login</button>
                     </div>
-                    <div class="col-12">
-                      <p class="small mb-0">Don't have account? <a href="create_account.php">Create an account</a></p>
-                    </div>
-                  </form>
-
+                  </div>
                 </div>
               </div>
 
@@ -145,7 +146,6 @@ if (isset($_POST['login'])) {
                 <!-- You can delete the links only if you purchased the pro version. -->
                 <!-- Licensing information: https://bootstrapmade.com/license/ -->
                 <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
-                Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
               </div>
 
             </div>
@@ -173,5 +173,4 @@ if (isset($_POST['login'])) {
   <script src="assets/js/main.js"></script>
 
 </body>
-
 </html>

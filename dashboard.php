@@ -43,11 +43,12 @@
   <!-- ======= Header ======= -->
   <header id="header" class="header fixed-top d-flex align-items-center">
 
-    <div class="d-flex align-items-center justify-content-between">
-      <a href="index.html" class="logo d-flex align-items-center">
-        <img src="assets/img/logo.png" alt="">
-        <span class="d-none d-lg-block">NiceAdmin</span>
-      </a>
+  </div>
+      <header id="header" class="header fixed-top d-flex align-items-center">
+        <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
+            style="height: 60px; width: auto; display: block;">
+        <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+      </div>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
