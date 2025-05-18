@@ -54,10 +54,10 @@ session_start();
             <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
 
               <div class="card mb-3">
-                  <header id="header" class="header fixed-top d-flex align-items-center">
-                    <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
-                        style="height: 60px; width: auto; display: block;">
-                    <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+              <header id="header" class="header fixed-top d-flex align-items-center">
+                <img src="assets/img/logo_bimbel_rsdc.png" alt="Logo Bimbel RSDC"
+                    style="height: 60px; width: auto; display: block;">
+                <span class="d-none d-lg-block ms-3 fs-4">Bimbel RSDC</span>
                   </header>
               </div>
               <!-- End Logo -->
@@ -112,6 +112,8 @@ session_start();
     </div>
   </main><!-- End #main -->
 
+  <?php require('layouts/footer.php')?>
+  
   <!-- Vendor JS Files -->
   <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

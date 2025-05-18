@@ -52,6 +52,22 @@ $result_paket = $conn->query($query_paket);
   ======================================================== -->
 </head>
 
+<main>
+    <div class="container">
+
+      <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+            </div>
+              <header id="header" class="header fixed-top d-flex align-items-center">
+                <img src="assets/img/logo_bimbel_rsdc.png" alt="Logo Bimbel RSDC"
+                    style="height: 60px; width: auto; display: block;">
+                <span class="d-none d-lg-block ms-3 fs-4">Bimbel RSDC</span>
+              </div>
+            </div><!-- End Logo -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,6 +149,8 @@ $result_paket = $conn->query($query_paket);
 
     </div>
   </main><!-- End #main -->
+
+  <?= require('layouts/footer.php');?>
 
   <!-- Vendor JS Files -->
   <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>

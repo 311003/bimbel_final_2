@@ -1,5 +1,8 @@
 <?php
-include 'connection.php'; // Koneksi ke database
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include 'connection.php';
 
 $id_pembayaran = $_GET['id_pembayaran'] ?? '';
 
@@ -34,7 +37,7 @@ $stmt->close();
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - Owner</title>
+  <title>Dashboard - Murid</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -69,111 +72,9 @@ $stmt->close();
 
 <body>
 
-</div>
-      <header id="header" class="header fixed-top d-flex align-items-center">
-        <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
-            style="height: 60px; width: auto; display: block;">
-        <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
-      </div>
-      <i class="bi bi-list toggle-sidebar-btn"></i>
-    </div><!-- End Logo -->
+<?= require('layouts/header.php');?>
+<?= require('layouts/sidemenu_murid.php');?>
 
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-            <li class="dropdown-header">
-              <h6>Kevin Anderson</h6>
-              <span>Web Designer</span>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-person"></i>
-                <span>My Profile</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-gear"></i>
-                <span>Account Settings</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
-                <i class="bi bi-question-circle"></i>
-                <span>Need Help?</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-          </ul><!-- End Profile Dropdown Items -->
-        </li><!-- End Profile Nav -->
-
-      </ul>
-    </nav><!-- End Icons Navigation -->
-
-  </header><!-- End Header -->
-
-  <!-- ======= Sidebar ======= -->
-<aside id="sidebar" class="sidebar">
-  <ul class="sidebar-nav" id="sidebar-nav">
-
-    <li class="nav-item">
-      <a class="nav-link" href="dashboard_murid.php">
-        <i class="bi bi-grid"></i>
-        <span>Dashboard</span>
-      </a>
-    </li><!-- End Dashboard Nav -->
-
-  <!-- Pembayaran -->
-  <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#pembayaran-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-menu-button-wide"></i>
-        <span>Pembayaran</span>
-        <i class="bi bi-chevron-down ms-auto"></i>
-      </a>
-      <ul id="pembayaran-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li>
-          <a href="input_pembayaran_murid.php">
-            <i class="bi bi-circle"></i>
-            <span>Input Pembayaran</span>
-          </a>
-        </li>
-      </ul>
-    </li><!-- End Pembayaran -->
-
-     <!-- Menu Murid -->
-   <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#menu-murid" data-bs-toggle="collapse" href="#">
-          <i class="bi bi-menu-button-wide"></i>
-          <span>Menu Murid</span>
-          <i class="bi bi-chevron-down ms-auto"></i>
-        </a>
-        <ul id="menu-murid" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-          <li><a href="view_presensi_murid.php"><i class="bi bi-circle"></i><span>Hasil Data Presensi</span></a></li>
-        </ul>
-      </li><!-- End Menu Murid -->
-
-<!-- Logout -->
-<li class="nav-item">
-      <a class="nav-link" href="login.php">
-        <i class="bi bi-cash"></i>
-        <span>Logout</span>
-      </a>
-    </li><!-- Logout -->
-  </ul>
-</aside><!-- End Sidebar -->
 
 <main id="main" class="main">
   <div class="pagetitle">
@@ -220,7 +121,7 @@ $stmt->close();
           </td>
           <td>
           <?php if (isset($row['id_bukti']) && $row['id_bukti'] != ''): ?>
-              <a href="delete_bukti_pembayaran.php?id=<?= $row['id_bukti'] ?>&id_pembayaran=<?= $row['id_pembayaran'] ?>"
+              <a href="delete_pembayaran_murid.php?id=<?= $row['id_bukti'] ?>&id_pembayaran=<?= $row['id_pembayaran'] ?>"
                  onclick="return confirm('Yakin ingin menghapus bukti pembayaran ini?')"
                  class="btn btn-danger btn-sm">Hapus</a>
             <?php else: ?>
@@ -237,13 +138,6 @@ $stmt->close();
     </table>
   </div>
 </main>
+<?= require('layouts/footer.php');?>
 </body>
 </html>
-
-<!-- Bootstrap CSS -->
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Bootstrap JS & jQuery -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

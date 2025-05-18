@@ -1,5 +1,8 @@
 <?php
-include 'connection.php'; // Koneksi ke database
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include 'connection.php';
 
 // Ambil id_pembayaran dari URL
 $id_pembayaran = $_GET['id_pembayaran'] ?? '';
@@ -78,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->close();
 
     // Menghitung jumlah bayar dan sisa biaya
-    $jumlah_bayar_total = $jumlah_bayar_lama + $jumlah_bayar;
-    $sisa_biaya = $biaya - $jumlah_bayar_total;
+    $jumlah_bayar_total = floatval($jumlah_bayar_lama) + floatval($jumlah_bayar);
+    $sisa_biaya = floatval($biaya) - $jumlah_bayar_total;
     $status_pembayaran = ($sisa_biaya <= 0) ? 'Lunas' : 'Belum Lunas';    
 
     // Tentukan status pembayaran
@@ -117,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - Owner</title>
+  <title>Verifikasi Pembayaran Murid</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -152,111 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <body>
 
-</div>
-      <header id="header" class="header fixed-top d-flex align-items-center">
-        <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
-            style="height: 60px; width: auto; display: block;">
-        <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
-      </div>
-      <i class="bi bi-list toggle-sidebar-btn"></i>
-    </div><!-- End Logo -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-            <li class="dropdown-header">
-              <h6>Kevin Anderson</h6>
-              <span>Web Designer</span>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-person"></i>
-                <span>My Profile</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-gear"></i>
-                <span>Account Settings</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
-                <i class="bi bi-question-circle"></i>
-                <span>Need Help?</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-          </ul><!-- End Profile Dropdown Items -->
-        </li><!-- End Profile Nav -->
-
-      </ul>
-    </nav><!-- End Icons Navigation -->
-
-  </header><!-- End Header -->
-
-  <!-- ======= Sidebar ======= -->
-<aside id="sidebar" class="sidebar">
-  <ul class="sidebar-nav" id="sidebar-nav">
-
-    <li class="nav-item">
-      <a class="nav-link" href="dashboard_murid.php">
-        <i class="bi bi-grid"></i>
-        <span>Dashboard</span>
-      </a>
-    </li><!-- End Dashboard Nav -->
-
-  <!-- Pembayaran -->
-  <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#pembayaran-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-menu-button-wide"></i>
-        <span>Pembayaran</span>
-        <i class="bi bi-chevron-down ms-auto"></i>
-      </a>
-      <ul id="pembayaran-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li>
-          <a href="input_pembayaran_murid.php">
-            <i class="bi bi-circle"></i>
-            <span>Input Pembayaran</span>
-          </a>
-        </li>
-      </ul>
-    </li><!-- End Pembayaran -->
-
-     <!-- Menu Murid -->
-   <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#menu-murid" data-bs-toggle="collapse" href="#">
-          <i class="bi bi-menu-button-wide"></i>
-          <span>Menu Murid</span>
-          <i class="bi bi-chevron-down ms-auto"></i>
-        </a>
-        <ul id="menu-murid" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-          <li><a href="view_presensi_murid.php"><i class="bi bi-circle"></i><span>Hasil Data Presensi</span></a></li>
-        </ul>
-      </li><!-- End Menu Murid -->
-
-<!-- Logout -->
-<li class="nav-item">
-      <a class="nav-link" href="login.php">
-        <i class="bi bi-cash"></i>
-        <span>Logout</span>
-      </a>
-    </li><!-- Logout -->
-  </ul>
-</aside><!-- End Sidebar -->
+<?= require('layouts/header.php');?>
+<?= require('layouts/sidemenu_murid.php');?>
 
 <main id="main" class="main">
     <div class="pagetitle">
@@ -264,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
     <div class="card p-5 mb-5">
-        <form method="POST" action="verifikasi_pembayaran_owner.php" enctype="multipart/form-data">
+        <form method="POST" action="verifikasi_pembayaran_murid.php" enctype="multipart/form-data">
 
             <!-- ID Pembayaran -->
             <div class="form-group mb-3">
@@ -381,3 +281,8 @@ document.addEventListener("DOMContentLoaded", function () {
     style: 'currency', currency: 'IDR'
 }).format(sisa);
 </script>
+
+</main>
+<?= require('layouts/footer.php');?>
+</body>
+</html>

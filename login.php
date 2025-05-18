@@ -100,9 +100,9 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
 
             </div>
               <header id="header" class="header fixed-top d-flex align-items-center">
-                <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
+                <img src="assets/img/logo_bimbel_rsdc.png" alt="Logo Bimbel RSDC"
                     style="height: 60px; width: auto; display: block;">
-                <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+                <span class="d-none d-lg-block ms-3 fs-4">Bimbel RSDC</span>
               </div>
             </div><!-- End Logo -->
             

@@ -19,10 +19,10 @@ session_start();
               <div class="card mb-3">
 
               </div>
-                  <header id="header" class="header fixed-top d-flex align-items-center">
-                    <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
-                        style="height: 60px; width: auto; display: block;">
-                    <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
+              <header id="header" class="header fixed-top d-flex align-items-center">
+                <img src="assets/img/logo_bimbel_rsdc.png" alt="Logo Bimbel RSDC"
+                    style="height: 60px; width: auto; display: block;">
+                <span class="d-none d-lg-block ms-3 fs-4">Bimbel RSDC</span>
                   </div>
                 </div><!-- End Logo -->
                 
@@ -41,7 +41,7 @@ session_start();
     <br><br>
     <p><b>Jika sudah mengisi data diri Anda, silakan <a href="login.php">login</a>.</b></p>
   </div>
-
+<?php require('layouts/footer.php')?>
 </body>
 </html>
 

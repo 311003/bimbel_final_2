@@ -1,5 +1,17 @@
 <?php
-include 'connection.php'; // Koneksi ke database
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include 'connection.php';
+
+switch($_SESSION['role']){
+    case 2:
+        require 'middlewares/validasi_guru.php';
+    break;
+    case 3:
+        require 'middlewares/validasi_murid.php';
+    break;
+}
 
 // Ambil Id Presensi dari URL
 $id_presensi = isset($_GET['id_presensi']) ? $_GET['id_presensi'] : '';
@@ -92,7 +104,7 @@ if (isset($_POST['update'])) {
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - Owner</title>
+  <title>Update Presensi Guru</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -115,6 +127,7 @@ if (isset($_POST['update'])) {
 
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
+  <link href="assets/css/custom.css" rel="stylesheet">
 
   <!-- =======================================================
   * Template Name: NiceAdmin
@@ -126,119 +139,8 @@ if (isset($_POST['update'])) {
 </head>
 
 <body>
-
-</div>
-      <header id="header" class="header fixed-top d-flex align-items-center">
-        <img src="assets/img/logo_bimbel.png" alt="Logo Bimbel XYZ"
-            style="height: 60px; width: auto; display: block;">
-        <span class="d-none d-lg-block ms-3 fs-4">Bimbel XYZ</span>
-      </div>
-      <i class="bi bi-list toggle-sidebar-btn"></i>
-    </div><!-- End Logo -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-            <li class="dropdown-header">
-              <h6>Kevin Anderson</h6>
-              <span>Web Designer</span>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-person"></i>
-                <span>My Profile</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-gear"></i>
-                <span>Account Settings</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
-                <i class="bi bi-question-circle"></i>
-                <span>Need Help?</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>          
-
-          </ul><!-- End Profile Dropdown Items -->
-        </li><!-- End Profile Nav -->
-
-      </ul>
-    </nav><!-- End Icons Navigation -->
-
-  </header><!-- End Header -->
-
- <!-- ======= Sidebar ======= -->
- <aside id="sidebar" class="sidebar">
-  <ul class="sidebar-nav" id="sidebar-nav">
-
-    <li class="nav-item">
-      <a class="nav-link" href="dashboard_guru.php">
-        <i class="bi bi-grid"></i>
-        <span>Dashboard</span>
-      </a>
-    </li><!-- End Dashboard Nav -->
-
-   <!-- Menu Guru -->
-<li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#menu-guru" data-bs-toggle="collapse" href="#">
-          <i class="bi bi-menu-button-wide"></i>
-          <span>Menu Guru</span>
-          <i class="bi bi-chevron-down ms-auto"></i>
-        </a>
-        <ul id="menu-guru" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-          <li><a href="view_registrasi_guru.php"><i class="bi bi-circle"></i><span>Hasil Data Registrasi</span></a></li>
-          <li><a href="view_data_guru.php"><i class="bi bi-table"></i><span>Hasil Data Guru</span></a></li>
-        </ul>
-      </li><!-- End Menu Guru -->
-
-    <!-- Presensi -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#presensi-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-menu-button-wide"></i>
-        <span>Presensi</span>
-        <i class="bi bi-chevron-down ms-auto"></i>
-      </a>
-      <ul id="presensi-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li>
-          <a href="input_presensi_guru.php">
-            <i class="bi bi-circle"></i>
-            <span>Input</span>
-          </a>
-        </li>
-        <li>
-          <a href="hasil_presensi_guru.php">
-            <i class="bi bi-circle"></i>
-            <span>Hasil Data</span>
-          </a>
-        </li>
-      </ul>
-    </li><!-- End Presensi -->
-
-<!-- Logout -->
-<li class="nav-item">
-      <a class="nav-link" href="login.php">
-        <i class="bi bi-cash"></i>
-        <span>Logout</span>
-      </a>
-    </li><!-- Logout -->
-  </ul>
-</aside><!-- End Sidebar -->
+<?= require('layouts/header.php');?>
+<?= require('layouts/sidemenu_guru.php');?>
 
 <main id="main" class="main">
     <div class="pagetitle">
@@ -307,5 +209,8 @@ function setKeterangan(value) {
 
 <!-- Bootstrap JS -->
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<main>
+<?= require('layouts/footer.php');?>
 </body>
 </html>
