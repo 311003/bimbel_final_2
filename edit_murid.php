@@ -158,7 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <!-- Submit Button -->
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Update</button>
+                <button type="submit" class="btn btn-primary">Perbarui</button>
                 <a href="master_murid.php" class="btn btn-secondary">Batal</a>
             </div>
         </form>
@@ -197,6 +197,17 @@ function handleUpdate(selectElement, id_murid, type) {
         updateStatus(id_murid, value);
     }
 }
+
+// Membatasi input tanggal lahir agar tidak bisa hari ini atau tanggal setelahnya
+window.addEventListener("DOMContentLoaded", function () {
+    const tanggalLahirInput = document.getElementById("tanggal_lahir");
+    if (tanggalLahirInput) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const maxDate = yesterday.toISOString().split('T')[0];
+        tanggalLahirInput.setAttribute("max", maxDate);
+    }
+});
 
 </script>
 

@@ -60,30 +60,32 @@ if (isset($_POST['tambah_jadwal'])) {
     }
 
     // Cek bentrok jadwal untuk setiap guru
-    foreach ($id_guru_list as $id_guru) {
-    $cek_bentrok = $conn->prepare("SELECT * FROM jadwal 
-        WHERE tanggal_jadwal = ? 
-        AND id_guru = ?
-        AND (
-            (jam_masuk < ? AND jam_keluar > ?) OR
-            (jam_masuk >= ? AND jam_masuk < ?)
-        )
-    ");
-    $cek_bentrok->bind_param("ssssss", 
-        $tanggal_jadwal, $id_guru, 
-        $jam_keluar, $jam_masuk, 
-        $jam_masuk, $jam_keluar
-    );
-    $cek_bentrok->execute();
-    $result_bentrok = $cek_bentrok->get_result();
-
-    if ($result_bentrok->num_rows > 0) {
-        echo "<script>alert('Jadwal bentrok! Guru sudah terjadwal pada tanggal dan waktu yang sama.'); window.history.back();</script>";
-        exit();
-    }
-    $cek_bentrok->close();
-}
-
+    foreach ((array)$id_guru_list as $id_guru) {
+        $cek_bentrok = $conn->prepare("SELECT * FROM jadwal 
+            WHERE tanggal_jadwal = ? 
+            AND id_guru = ?
+            AND (
+                (? < jam_keluar AND ? > jam_masuk)
+            )
+        ");
+        $cek_bentrok->bind_param("ssss", 
+            $tanggal_jadwal, $id_guru, 
+            $jam_masuk, $jam_keluar
+        );
+        $cek_bentrok->execute();
+        $result_bentrok = $cek_bentrok->get_result();
+    
+        if ($result_bentrok->num_rows > 0) {
+            echo "<script>alert('Jadwal bentrok! Guru sudah memiliki jadwal pada waktu tersebut.'); window.history.back();</script>";
+            exit();
+        if (strtotime($tanggal_jadwal) < strtotime(date("Y-m-d"))) {
+            echo "<script>alert('Tanggal jadwal tidak boleh di masa lalu!'); window.history.back();</script>";
+            exit();
+            }
+            
+        }
+        $cek_bentrok->close();
+    }    
 
     // ✅ Masukkan ke tabel `jadwal`
     $query_insert_jadwal = "INSERT INTO jadwal (id_jadwal, id_guru, id_paket, tanggal_jadwal, jam_masuk, jam_keluar) 
@@ -162,7 +164,7 @@ if (isset($_POST['tambah_jadwal'])) {
 <?= require('layouts/sidemenu_owner.php');?>
 <main id="main" class="main">
     <div class="pagetitle">
-        <h1>Input Jadwal</h1>
+        <h1>Tambah Data Jadwal</h1>
     </div>
 
     <div class="card p-5 mb-5">

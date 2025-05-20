@@ -122,7 +122,7 @@ if (isset($_GET['id_paket'])) {
 
             <!-- Tombol Submit -->
             <div class="text-center">
-                <button type="submit" class="btn btn-primary" name="update">Update</button>
+                <button type="submit" class="btn btn-primary" name="update">Perbarui</button>
                 <a href="master_paket.php" class="btn btn-secondary">Batal</a>
             </div>
 

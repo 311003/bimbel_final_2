@@ -165,5 +165,17 @@ $result_paket = $conn->query($query_paket);
   <!-- Template Main JS File -->
   <script src="assets/js/main.js"></script>
 
+  <!-- Script pembatasan tanggal lahir -->
+<script>
+  window.addEventListener("DOMContentLoaded", function () {
+    const tanggalInput = document.querySelector('input[name="tanggal_lahir"]');
+    if (tanggalInput) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const maxDate = yesterday.toISOString().split('T')[0];
+      tanggalInput.setAttribute("max", maxDate);
+    }
+  });
+</script>
 </body>
 </html>

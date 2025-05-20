@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <main id="main" class="main">
     <div class="pagetitle">
-        <h1>Verifikasi Pembayaran</h1>
+        <h1>Tambah Data Pembayaran</h1>
     </div>
 
     <div class="card p-5 mb-5">
@@ -234,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <!-- Submit Button -->
             <div class="text-center">
-                <button type="submit" class="btn btn-primary" name="verifikasi_pembayaran">Verifikasi Pembayaran</button>
+                <button type="submit" class="btn btn-primary" name="verifikasi_pembayaran">Kirim</button>
                 <a href="input_pembayaran_murid.php" class="btn btn-secondary">Batal</a>
             </div>
 

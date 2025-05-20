@@ -79,7 +79,7 @@ echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
     <main id="main" class="main">
 
       <div class="pagetitle">
-        <h1>Input Paket Baru</h1>
+        <h1>Tambah Data Paket Baru</h1>
       </div><!-- End Page Title -->
 
       <!-- Form -->
@@ -104,7 +104,7 @@ echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
           <!-- Submit Button -->
           <div class="text-center">
-              <button type="submit" class="btn btn-primary" name="tambah">Submit</button>
+              <button type="submit" class="btn btn-primary" name="tambah">Simpan</button>
           </div>
       </form>
   </div>

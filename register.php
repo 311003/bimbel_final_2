@@ -65,8 +65,8 @@ session_start();
                 <div class="card mb-3">
                   <div class="card-body">
                     <div class="pt-4 pb-2">
-                      <h5 class="card-title text-center pb-0 fs-4">Register Your Account</h5>
-                      <p class="text-center small">Masukkan Email, Username & Password Untuk Register</p>
+                      <h5 class="card-title text-center pb-0 fs-4">Daftarkan Akunmu</h5>
+                      <p class="text-center small">Masukkan Email, Username dan Password Untuk Daftar Akun</p>
                     </div>
                     <!-- Form konfirmasi akun buatan admin -->
                     <form action="register_process.php" method="POST" class="needs-validation" novalidate>
@@ -92,7 +92,7 @@ session_start();
 
                     <!-- Teks informatif -->
                     <div class="col text-end">
-                      <button type="submit" class="btn btn-outline-secondary">Register</button>
+                      <button type="submit" class="btn btn-outline-secondary">Daftar Akun</button>
                     </div>
                     </form>
                   </div>
@@ -113,7 +113,7 @@ session_start();
   </main><!-- End #main -->
 
   <?php require('layouts/footer.php')?>
-  
+
   <!-- Vendor JS Files -->
   <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

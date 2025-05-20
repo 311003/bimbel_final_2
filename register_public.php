@@ -65,9 +65,9 @@ session_start();
                 </div><!-- End Logo -->
 
                 <div class="pt-4 pb-2">
-                    <h5 class="card-title text-center pb-0 fs-4">Setelah Melakukan Register, Silahkan Mengisi Data Diri Anda Terlebih Dahulu!</h5>
+                    <h5 class="card-title text-center pb-0 fs-4">Setelah Melakukan Pendaftaran, Silahkan Mengisi Data Diri Anda Terlebih Dahulu!</h5>
                     <h5 class="card-title text-center pb-0 fs-4">Pilih Posisi Anda Saat Ini, Sebagai Guru atau Murid?</h5>
-                    <p class="text-center small">Setelah mengisi, Anda dapat melakukan login</p>
+                    <p class="text-center small">Setelah mengisi, Anda dapat melakukan masuk website</p>
                   </div>
 
                 <!-- Link ke form registrasi guru -->
@@ -99,7 +99,7 @@ session_start();
   </main><!-- End #main -->
 
   <?php require('layouts/footer.php')?>
-  
+
   <!-- Vendor JS Files -->
   <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

@@ -83,7 +83,7 @@ if (isset($_POST['tambah'])) {
   <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>Input Data Guru</h1>
+      <h1>Tambah Data Guru</h1>
     </div><!-- End Page Title -->
 
     <!-- Form -->
@@ -132,7 +132,7 @@ if (isset($_POST['tambah'])) {
 
         <!-- Submit Button -->
         <div class="text-center">
-            <button type="submit" class="btn btn-primary" name="tambah">Submit</button>
+            <button type="submit" class="btn btn-primary" name="tambah">Simpan</button>
         </div>
 
     </form>

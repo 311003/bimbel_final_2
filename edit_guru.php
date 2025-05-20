@@ -155,7 +155,7 @@ if (isset($_GET['id_guru'])) {
 
             <!-- Tombol Submit -->
             <div class="text-center">
-                <button type="submit" class="btn btn-primary" name="update">Update</button>
+                <button type="submit" class="btn btn-primary" name="update">Perbarui</button>
                 <a href="master_guru.php" class="btn btn-secondary">Batal</a>
             </div>
 
@@ -164,6 +164,18 @@ if (isset($_GET['id_guru'])) {
 </div>
 
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Membatasi input tanggal lahir agar tidak bisa memilih hari ini atau ke depan
+    window.addEventListener("DOMContentLoaded", function () {
+        const tanggalLahirInput = document.getElementById("tanggal_lahir");
+        if (tanggalLahirInput) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const maxDate = yesterday.toISOString().split('T')[0];
+            tanggalLahirInput.setAttribute("max", maxDate);
+        }
+    });
+</script>
 </main>
 <?= require('layouts/footer.php');?>
 </body>

@@ -5,7 +5,7 @@
     <li class="nav-item">
       <a class="nav-link" href="dashboard_guru.php">
         <i class="bi bi-grid"></i>
-        <span>Dashboard</span>
+        <span>Beranda</span>
       </a>
     </li><!-- End Dashboard Nav -->
 
@@ -33,7 +33,7 @@
         <li>
           <a href="input_presensi_guru.php">
             <i class="bi bi-circle"></i>
-            <span>Input</span>
+            <span>Tambah Data</span>
           </a>
         </li>
         <li>

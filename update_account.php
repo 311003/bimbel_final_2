@@ -117,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
                 <div class="text-end">
-                    <button type="submit" class="btn btn-primary">Update User</button>
+                    <button type="submit" class="btn btn-primary">Ubah Password</button>
                 </div>
             </form>
             </div>

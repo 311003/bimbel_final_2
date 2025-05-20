@@ -72,7 +72,7 @@ session_start();
                             <tr>
                                 <th>ID Paket</th>
                                 <th>Paket</th>
-                                <th>Action</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>

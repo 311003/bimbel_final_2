@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>Password Baru</label>
             <input type="password" name="password" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary">Update Password</button>
+        <button type="submit" class="btn btn-primary">Perbarui Kata Sandi</button>
         <a href="list_user.php" class="btn btn-secondary">Kembali</a>
     </form>
 </div>

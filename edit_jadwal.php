@@ -215,7 +215,7 @@ if (isset($_POST['update_jadwal'])) {
 
         <!-- Submit Button -->
         <div class="text-center">
-            <button type="submit" class="btn btn-primary" name="update_jadwal">Update Jadwal</button>
+            <button type="submit" class="btn btn-primary" name="update_jadwal">Ubah Jadwal</button>
             <a href="hasil_data_jadwal.php" class="btn btn-secondary">Batal</a>
         </div>
 

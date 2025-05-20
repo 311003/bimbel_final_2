@@ -105,7 +105,7 @@ if (!$result) {
                                     echo "<td>" . htmlspecialchars($row['jam_keluar']) . "</td>";
                                     echo "<td>";
                                     echo "<a href='edit_jadwal.php?id_jadwal=" . $row['id_jadwal'] . "' class='btn btn-sm btn-warning'>Edit</a> ";
-                                    echo "<a href='delete_jadwal.php?id_jadwal=" . $row['id_jadwal'] . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin menghapus data?\")'>Delete</a>";
+                                    echo "<a href='delete_jadwal.php?id_jadwal=" . $row['id_jadwal'] . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin menghapus data?\")'>Hapus</a>";
                                     echo "</td>";
                                     echo "</tr>";
                                 }

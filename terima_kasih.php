@@ -39,7 +39,7 @@ session_start();
     <h2>Terima kasih telah mendaftar!</h2>
     <p>Data Anda telah kami terima dan segera diproses.</p>
     <br><br>
-    <p><b>Jika sudah mengisi data diri Anda, silakan <a href="login.php">login</a>.</b></p>
+    <p><b>Jika sudah mengisi data diri Anda, silakan <a href="login.php">masukkan akunmu</a>.</b></p>
   </div>
 <?php require('layouts/footer.php')?>
 </body>

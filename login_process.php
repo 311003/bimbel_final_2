@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ((int)$user['is_active'] !== 1) {
-        echo "<script>alert('Akun Anda belum aktif. Hubungi admin.'); window.location='login.php';</script>";
+        echo "<script>alert('Akun Anda non aktif. Silahkan Hubungi Owner.'); window.location='login.php';</script>";
         exit;
     }
 

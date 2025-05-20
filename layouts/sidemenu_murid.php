@@ -5,7 +5,7 @@
         <li class="nav-item">
             <a class="nav-link" href="dashboard_murid.php">
                 <i class="bi bi-grid"></i>
-                <span>Dashboard</span>
+                <span>Beranda</span>
             </a>
         </li><!-- End Dashboard Nav -->
 

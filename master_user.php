@@ -141,7 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card shadow-lg rounded-4 p-4">
-                    <h3 class="mb-4">Tambah Master User</h3>
+                    <h3 class="mb-4">Tambah Master Pengguna</h3>
 
                     <?php if ($message): ?>
                         <div class="alert alert-info"><?= $message ?></div>
@@ -191,10 +191,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
 
                         <div class="text-end">
-                            <button type="submit" class="btn btn-primary">Buat User</button>
+                            <button type="submit" class="btn btn-primary">Buat Akun Pengguna</button>
                         </div>
                         <div class="mt-3">
-                            <a href="list_user.php" class="btn btn-outline-secondary">Lihat Daftar User</a>
+                            <a href="list_user.php" class="btn btn-outline-secondary">Lihat Daftar Pengguna</a>
                         </div>
                                 </form>
 

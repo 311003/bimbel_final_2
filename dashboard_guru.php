@@ -96,7 +96,7 @@ $result = $conn->query($jadwal_query);
 
 <main id="main" class="main">
   <div class="pagetitle">
-    <h1>Dashboard Guru</h1>
+    <h1>Beranda Guru</h1>
     <p>Selamat datang, <strong><?= htmlspecialchars($guru['nama_guru']) ?></strong></p>
   </div>
 

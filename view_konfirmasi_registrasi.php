@@ -67,7 +67,7 @@ if (!$result_valid) {
 
     <main id="main" class="main">
         <div class="container mt-4">
-            <h2 class="text-center">View Konfirmasi Data Registrasi Murid</h2>
+            <h2 class="text-center">Lihat Konfirmasi Data Registrasi Murid</h2>
 
             <!-- ✅ Tabel Murid yang Jadi Ikut Bimbel -->
             <h4 class="mt-4 text-success">✅ Murid yang Divalidasi</h4>

@@ -6,7 +6,7 @@
     <li class="nav-item">
       <a class="nav-link" href="dashboard_owner.php">
         <i class="bi bi-grid"></i>
-        <span>Dashboard</span>
+        <span>Beranda</span>
       </a>
     </li><!-- End Dashboard Nav -->
 
@@ -17,9 +17,9 @@
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="registrasi-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li><a href="input_registrasi.php"><i class="bi bi-circle"></i><span>Input</span></a></li>
+        <li><a href="input_registrasi.php"><i class="bi bi-circle"></i><span>Tambah Data</span></a></li>
         <li><a href="konfirmasi_registrasi.php"><i class="bi bi-circle"></i><span>Konfirmasi Registrasi</span></a></li>
-        <li><a href="view_konfirmasi_registrasi.php"><i class="bi bi-circle"></i><span>View Konfirmasi</span></a></li>
+        <li><a href="view_konfirmasi_registrasi.php"><i class="bi bi-circle"></i><span>Lihat Registrasi</span></a></li>
       </ul>
     </li>
 
@@ -30,7 +30,7 @@
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="jadwal-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li><a href="input_jadwal.php"><i class="bi bi-circle"></i><span>Input</span></a></li>
+        <li><a href="input_jadwal.php"><i class="bi bi-circle"></i><span>Tambah Data</span></a></li>
         <li><a href="hasil_data_jadwal.php"><i class="bi bi-circle"></i><span>Hasil Data</span></a></li>
       </ul>
     </li>
@@ -56,7 +56,7 @@
         <li><a href="master_murid.php"><i class="bi bi-circle"></i><span>Murid</span></a></li>
         <li><a href="master_guru.php"><i class="bi bi-circle"></i><span>Guru</span></a></li>
         <li><a href="master_paket.php"><i class="bi bi-circle"></i><span>Paket</span></a></li>
-        <li><a href="master_user.php"><i class="bi bi-circle"></i><span>User</span></a></li>
+        <li><a href="master_user.php"><i class="bi bi-circle"></i><span>Akun Pengguna</span></a></li>
       </ul>
     </li>
 

@@ -110,8 +110,8 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
 
               <form action="login_process.php" method="POST" class="row g-3 needs-validation" novalidate>
                 <div class="pt-4 pb-2">
-                  <h5 class="card-title text-center pb-0 fs-4">Login to Your Account</h5>
-                  <p class="text-center small">Masukkan Username & Password Anda</p>
+                  <h5 class="card-title text-center pb-0 fs-4">Masuk ke Akunmu</h5>
+                  <p class="text-center small">Masukkan Username dan Password Anda</p>
                 </div>
 
                <!-- Bungkus semua dengan offset agar lebih ke tengah -->
@@ -131,11 +131,11 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                      <!-- Teks informatif -->
                      <div class="mb-2">
                         <small class="text-muted">
-                          Anda belum memiliki akun untuk login? Silakan <a href="register.php">register terlebih dahulu!</a>
+                          Anda belum memiliki akun untuk masuk website? Silahkan <a href="register.php">registrasi terlebih dahulu!</a>
                         </small>
                       </div>
                     <div class="col text-end">
-                      <button type="submit" class="btn btn-success">Login</button>
+                      <button type="submit" class="btn btn-success">Masuk</button>
                     </div>
                   </div>
                 </div>

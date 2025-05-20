@@ -54,6 +54,13 @@ $result = $conn->query($query);
 <?php require('layouts/header.php'); ?>
 <?php require('layouts/sidemenu_owner.php'); ?>
 
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Beranda Owner</h1>
+    <p>Selamat datang, Owner</p>
+</main>
+  </div>
+  
 <main id="main" class="main" style="margin-top: 20px;">
   <div class="container-fluid">
     <div class="row my-4">

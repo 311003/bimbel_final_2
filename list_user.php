@@ -63,14 +63,14 @@ $result = $conn->query("
 
 <main id="main" class="main">
 <div class="container mt-5">
-    <h3 class="mb-3">Daftar User</h3>
+    <h3 class="mb-3">Daftar Pengguna</h3>
 
     <?php if (isset($_SESSION['message'])): ?>
         <div class="alert alert-success"><?= $_SESSION['message'] ?></div>
         <?php unset($_SESSION['message']); ?>
     <?php endif; ?>
 
-    <a href="master_user.php" class="btn btn-secondary mb-3">➕ Kembali ke Tambah User</a>
+    <a href="master_user.php" class="btn btn-secondary mb-3">Kembali ke Tambah Master Akun Pengguna</a>
 
     <table class="table table-bordered" id="tableUser">
         <thead>
@@ -78,9 +78,9 @@ $result = $conn->query("
                 <th>ID</th>
                 <th>Username</th>
                 <th>Email</th>
-                <th>Role</th>
+                <th>Peran</th>
                 <th>Status</th>
-                <th>Reset Password</th>
+                <th>Atur Ulang Password</th>
                 <th>Aktif / Nonaktif</th>
             </tr>
         </thead>
@@ -99,7 +99,7 @@ $result = $conn->query("
                         <?php endif; ?>
                     </td>
                     <td>
-                        <a href="reset_password_user.php?id_user=<?= $row['id_user'] ?>" class="btn btn-sm btn-warning">Reset</a>
+                        <a href="reset_password_user.php?id_user=<?= $row['id_user'] ?>" class="btn btn-sm btn-warning">Atur Ulang</a>
                     </td>
                     <td>
                         <?php if ($row['role'] == 3): ?>

@@ -223,7 +223,7 @@ if (!$result_pembayaran) {
                           <?php
                             if(((intval($row['jumlah_bayar']) < intval($row['biaya'])) || (intval($row['sisa_biaya']) > 0)) && $total==0){
                           ?>
-                            <a href="verifikasi_pembayaran_murid.php?id_pembayaran=<?= isset($row['id_pembayaran']) ? $row['id_pembayaran'] : '' ?>" class="btn btn-sm btn-warning">Verifikasi                        
+                            <a href="verifikasi_pembayaran_murid.php?id_pembayaran=<?= isset($row['id_pembayaran']) ? $row['id_pembayaran'] : '' ?>" class="btn btn-sm btn-warning">Unggah Bukti Bayar                        
                           <?php
                             }
                           ?>

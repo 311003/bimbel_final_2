@@ -132,7 +132,7 @@ if (isset($_POST['tambah'])) {
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Input Registrasi</h1>
+            <h1>Tambah Data Registrasi</h1>
         </div><!-- End Page Title -->
 
         <form method="POST" action="" enctype="multipart/form-data" id="formRegistrasi">
@@ -296,6 +296,13 @@ if (isset($_POST['tambah'])) {
 
         const today = new Date().toISOString().split('T')[0];
     document.getElementById("tgl_reg").setAttribute("min", today);
+
+// Tambahan untuk membatasi tanggal lahir (tidak boleh hari ini atau ke depan)
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+const maxTanggalLahir = yesterday.toISOString().split('T')[0];
+document.getElementById("tanggal_lahir").setAttribute("max", maxTanggalLahir);
+
     </script>
 </body>
 

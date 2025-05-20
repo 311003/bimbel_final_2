@@ -160,7 +160,7 @@ foreach ($id_murid_array as $key => $id_murid) {
 <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>Input Presensi</h1>
+      <h1>Tambah Data Presensi</h1>
     </div><!-- End Page Title -->
 
     <div class="card p-5 mb-5">
