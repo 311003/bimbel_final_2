@@ -77,6 +77,7 @@ session_start();
                                 <th>Alamat</th>
                                 <th>Nomor Telepon</th>
                                 <th>Pendidikan</th>
+                                <th>Gaji</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -96,7 +97,7 @@ session_start();
                             }
 
                             // Ambil data guru
-                            $query = "SELECT g.id_guru, g.nama_guru, g.tanggal_lahir, g.alamat, g.no_telp, g.pendidikan, 
+                            $query = "SELECT g.id_guru, g.nama_guru, g.tanggal_lahir, g.alamat, g.no_telp, g.pendidikan, g.gaji,
                           g.id_status_guru, s.status_guru 
                     FROM guru g
                     LEFT JOIN status_guru s ON g.id_status_guru = s.id_status_guru";
@@ -112,6 +113,7 @@ session_start();
                                     echo "<td>" . htmlspecialchars($row['alamat']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['no_telp']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['pendidikan']) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row['gaji']) . "</td>";
                                     echo "<td>
                             <select class='form-select form-select-sm' 
                                 onchange='updateStatus(" . htmlspecialchars($row['id_guru']) . ", this.value)'>";

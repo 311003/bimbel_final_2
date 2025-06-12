@@ -17,12 +17,13 @@ if (isset($_POST['tambah'])) {
     $alamat = $_POST['alamat'];
     $no_telp = $_POST['no_telp'];
     $pendidikan = $_POST['pendidikan'];
+    $gaji = $_POST['gaji'];
 
     // Query untuk insert data ke tabel_guru
-    $query_insert_guru = "INSERT INTO guru (id_guru, nama_guru, tanggal_lahir, alamat, no_telp, pendidikan)
-                            VALUES (?, ?, ?, ?, ?, ?)";
+    $query_insert_guru = "INSERT INTO guru (id_guru, nama_guru, tanggal_lahir, alamat, no_telp, pendidikan,gaji)
+                            VALUES (?, ?, ?, ?, ?, ?,?)";
     $stmt_guru = $conn->prepare($query_insert_guru);
-    $stmt_guru->bind_param("ssssss", $id_guru, $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan);
+    $stmt_guru->bind_param("sssssss", $id_guru, $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan,$gaji);
 
         // Eksekusi query 
         if ($stmt_guru->execute()) {
@@ -129,7 +130,10 @@ if (isset($_POST['tambah'])) {
             <label for="pendidikan">Pendidikan</label>
             <input type="text" class="form-control" id="pendidikan" name="pendidikan" required>
         </div>
-
+        <div class="form-group mb-3">
+            <label for="no_telp">Gaji</label>
+            <input type="number" class="form-control" id="gaji" name="gaji" required>
+        </div>
         <!-- Submit Button -->
         <div class="text-center">
             <button type="submit" class="btn btn-primary" name="tambah">Simpan</button>

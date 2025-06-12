@@ -101,6 +101,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $dateToday = date('Y-m-d h:i:s');
         $stmt_insert->bind_param("issss", $id_pembayaran, $id_murid, $dateToday, $jumlah_bayar, $bukti_pembayaran);
         if ($stmt_insert->execute()) {
+            // add to Cashflow
+            $keterangan="Pembarayan murid";
+            $tipe="Pemasukan";
+            $query_insert = "INSERT INTO cashflow (tipe,keterangan,tanggal) VALUES (?, ?,?)";
+            $cash_insert = $conn->prepare($query_insert);
+            $dateToday = date('Y-m-d h:i:s');
+            $cash_insert->bind_param("sss", $tipe, $keterangan, $dateToday);
+            $cash_insert->execute();
+
             echo "<script>alert('Data pembayaran berhasil diperbarui!'); window.location.href='input_pembayaran_murid.php';</script>";
         } else {
             echo "<script>alert('Error memasukkan bukti pembayaran: " . $conn->error . "');</script>";

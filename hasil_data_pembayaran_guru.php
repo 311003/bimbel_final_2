@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Sinkronisasi data pembayaran sebelum ditampilkan
 $update_status_sql = "
-UPDATE pembayaran r
+UPDATE pembayaran_guru r
 LEFT JOIN (
     SELECT 
         id_pembayaran, 
@@ -127,7 +127,7 @@ $conn->close();
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Hasil Data Pembayaran</title>
+    <title>Hasil Data Pembayaran Guru</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -168,16 +168,16 @@ $conn->close();
 
     <main id="main" class="main">
         <div class="container mt-4">
-            <h2 class="text-center">Hasil Data Pembayaran</h2>
+            <h2 class="text-center">Hasil Data Pembayaran Guru</h2>
 
-            <h4 class="mt-4 text-success">✅ Murid yang Divalidasi</h4>
+            <h4 class="mt-4 text-success">✅ Gaji Guru</h4>
             <table id="viewTable" class="table table-bordered">
                 <thead class="table-success">
                     <tr>
-                        <th>No Registrasi</th>
+                        <th>No Presensi</th>
                         <th>Nama</th>
-                        <th>Paket</th>
-                        <th>Biaya</th>
+                        <th>Tanggal</th>
+                        <th>Gaji</th>
                         <th>Jumlah Bayar</th>
                         <th>Sisa Biaya</th>
                         <th>Status Pembayaran</th>

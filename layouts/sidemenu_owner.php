@@ -42,7 +42,8 @@
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="pembayaran-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li><a href="hasil_data_pembayaran.php"><i class="bi bi-circle"></i><span>Hasil Data</span></a></li>
+      <li><a href="hasil_data_pembayaran.php"><i class="bi bi-circle"></i><span>Hasil Data Murid</span></a></li>
+      <li><a href="hasil_data_pembayaran_guru.php"><i class="bi bi-circle"></i><span>Gaji Guru</span></a></li>
       </ul>
     </li>
 
@@ -57,6 +58,19 @@
         <li><a href="master_guru.php"><i class="bi bi-circle"></i><span>Guru</span></a></li>
         <li><a href="master_paket.php"><i class="bi bi-circle"></i><span>Paket</span></a></li>
         <li><a href="master_user.php"><i class="bi bi-circle"></i><span>Akun Pengguna</span></a></li>
+      </ul>
+    </li>
+
+    <!-- Laporan -->
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-toggle="collapse" data-bs-target="#laporannav" href="#">
+        <i class="bi bi-report"></i><span>Laporan</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="laporannav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <li><a href="master_murid.php"><i class="bi bi-circle"></i><span>CashFlow</span></a></li>
+        <li><a href="master_guru.php"><i class="bi bi-circle"></i><span>Gaji Guru</span></a></li>
+        <li><a href="master_paket.php"><i class="bi bi-circle"></i><span>Murid</span></a></li>
       </ul>
     </li>
 

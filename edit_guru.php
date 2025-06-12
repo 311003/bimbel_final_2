@@ -32,11 +32,12 @@ if (isset($_GET['id_guru'])) {
         $alamat = $_POST['alamat'];
         $no_telp = $_POST['no_telp'];
         $pendidikan = $_POST['pendidikan'];
+        $gaji = $_POST['gaji'];
 
         // Query UPDATE data ke database
-        $query_update = "UPDATE guru SET nama_guru=?, tanggal_lahir=?, alamat=?, no_telp=?, pendidikan=? WHERE id_guru=?";
+        $query_update = "UPDATE guru SET nama_guru=?, tanggal_lahir=?, alamat=?, no_telp=?, pendidikan=?,gaji=? WHERE id_guru=?";
         $stmt_update = $conn->prepare($query_update);
-        $stmt_update->bind_param("ssssss", $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan, $id_guru);
+        $stmt_update->bind_param("sssssss", $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan,$gaji, $id_guru);
 
         if ($stmt_update->execute()) {
             echo "<script>alert('Data berhasil diperbarui!'); window.location.href='master_guru.php';</script>";
@@ -151,6 +152,12 @@ if (isset($_GET['id_guru'])) {
             <div class="mb-3">
                 <label for="pendidikan" class="form-label">Pendidikan</label>
                 <input type="text" class="form-control" id="pendidikan" name="pendidikan" value="<?= $row['pendidikan'] ?>" required>
+            </div>
+
+            <!-- gaji -->
+            <div class="mb-3">
+                <label for="gaji" class="form-label">Gaji</label>
+                <input type="number" class="form-control" id="gaji" name="gaji" value="<?= $row['gaji'] ?>" required>
             </div>
 
             <!-- Tombol Submit -->
