@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Ambil daftar status murid
 $statusQuery = "SELECT * FROM status_murid";
@@ -153,7 +152,7 @@ $result = $conn->query($query);
     </main>
     <?= require('layouts/footer.php') ?>
     <script>
-            let table = new DataTable('#viewTable', {
+        let table = new DataTable('#viewTable', {
             // options
             // lengthMenu: [
             //     [20, 30, 40, -1],

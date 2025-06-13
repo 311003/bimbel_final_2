@@ -1,7 +1,7 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
+// echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Fetch the validated students' data
 $query_valid = "SELECT r.*, p.paket 
@@ -45,8 +45,8 @@ if (!$result_valid) {
     <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
     <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
     <link href="assets/vendor/DataTables/datatables.min.css" rel="stylesheet">
- 
-        
+
+
 
     <!-- Template Main CSS File -->
     <link href="assets/css/style.css" rel="stylesheet">
@@ -123,7 +123,6 @@ if (!$result_valid) {
             //     [20, 30, 40, 'All']
             // ]
         });
-
     </script>
 </body>
 

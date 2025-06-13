@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Generate ID Murid (Untuk murid baru)
 $query_id = "SELECT LPAD(COALESCE(MAX(CAST(id_murid AS UNSIGNED)) + 1, 1), 2, '0') AS id_murid FROM master_murid";
@@ -295,14 +294,13 @@ if (isset($_POST['tambah'])) {
         }
 
         const today = new Date().toISOString().split('T')[0];
-    document.getElementById("tgl_reg").setAttribute("min", today);
+        document.getElementById("tgl_reg").setAttribute("min", today);
 
-// Tambahan untuk membatasi tanggal lahir (tidak boleh hari ini atau ke depan)
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
-const maxTanggalLahir = yesterday.toISOString().split('T')[0];
-document.getElementById("tanggal_lahir").setAttribute("max", maxTanggalLahir);
-
+        // Tambahan untuk membatasi tanggal lahir (tidak boleh hari ini atau ke depan)
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const maxTanggalLahir = yesterday.toISOString().split('T')[0];
+        document.getElementById("tanggal_lahir").setAttribute("max", maxTanggalLahir);
     </script>
 </body>
 

@@ -1,7 +1,7 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
+require 'classes/Cashflow.php';
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Ambil id_pembayaran dari URL
 $id_pembayaran = $_GET['id_pembayaran'] ?? '';
@@ -100,13 +100,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $dateToday = date('Y-m-d h:i:s');
         $stmt_insert->bind_param("issss", $id_pembayaran, $id_murid, $dateToday, $jumlah_bayar, $bukti_pembayaran);
         if ($stmt_insert->execute()) {
-            $keterangan="Pembarayan murid";
-            $tipe="Pemasukan";
-            $query_insert = "INSERT INTO cashflow (tipe,keterangan,tanggal) VALUES (?, ?,?)";
-            $cash_insert = $conn->prepare($query_insert);
-            $dateToday = date('Y-m-d h:i:s');
-            $cash_insert->bind_param("sss", $tipe, $keterangan, $dateToday);
-            $cash_insert->execute();
+            $id_ref = $conn->insert_id;
+            $keterangan = "Pembarayan murid";
+            $tipe = "Pemasukan";
+            $cashflow = new Cashflow($conn);
+            $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran',$id_ref);
+            $stmt_insert->close();
             echo "<script>alert('Data pembayaran berhasil diperbarui!'); window.location.href='hasil_data_pembayaran.php';</script>";
         } else {
             echo "<script>alert('Error memasukkan bukti pembayaran: " . $conn->error . "');</script>";

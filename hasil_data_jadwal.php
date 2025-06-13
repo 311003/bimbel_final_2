@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // ✅ Query dengan JOIN ke tabel guru dan paket_bimbel
 $query = "SELECT 
@@ -51,7 +50,7 @@ if (!$result) {
     <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
     <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
     <link href="assets/vendor/DataTables/datatables.min.css" rel="stylesheet">
-    
+
     <!-- Template Main CSS File -->
     <link href="assets/css/style.css" rel="stylesheet">
     <link href="assets/css/custom.css" rel="stylesheet">

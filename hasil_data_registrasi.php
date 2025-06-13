@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 $result = null; // ✅ Pastikan $result selalu terdefinisi
 
@@ -24,7 +23,7 @@ if (isset($_GET['no_reg'])) {
     $query_insert = "INSERT INTO registrasi_valid (no_reg, id_murid, tgl_reg, nama, tanggal_lahir, alamat, kelas, asal_sekolah, id_paket, jenis_kelamin, no_telp, status)
                      SELECT no_reg, id_murid, tgl_reg, nama, tanggal_lahir, alamat, kelas, asal_sekolah, id_paket, jenis_kelamin, no_telp, status
                      FROM registrasi_murid WHERE no_reg = ?";
-    
+
     $stmt_insert = $conn->prepare($query_insert);
     $stmt_insert->bind_param("s", $no_reg);
 
@@ -90,35 +89,35 @@ if (isset($_GET['no_reg'])) {
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - Dashboard Owner</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+    <title>Dashboard - Dashboard Owner</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
 
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
-  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
-  <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
-  <link href="assets/css/custom.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
 
-  <!-- =======================================================
+    <!-- =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
@@ -128,52 +127,52 @@ if (isset($_GET['no_reg'])) {
 </head>
 
 <body>
-<?= require('layouts/header.php');?>
-<?= require('layouts/sidemenu_owner.php');?>
+    <?= require('layouts/header.php'); ?>
+    <?= require('layouts/sidemenu_owner.php'); ?>
 
-<main id="main" class="main">
-    <div class="container mt-4">
-        <h2 class="text-center">Data Murid Bimbel</h2>
+    <main id="main" class="main">
+        <div class="container mt-4">
+            <h2 class="text-center">Data Murid Bimbel</h2>
 
-        <h4 class="mt-4 text-success">✅ Murid yang Jadi Ikut Bimbel</h4>
+            <h4 class="mt-4 text-success">✅ Murid yang Jadi Ikut Bimbel</h4>
 
-        <table class="table table-bordered">
-            <thead class="table-success">
-                <tr>
-                    <th>No Registrasi</th>
-                    <th>Nama</th>
-                    <th>Tanggal Lahir</th>
-                    <th>Alamat</th>
-                    <th>Kelas</th>
-                    <th>Asal Sekolah</th>
-                    <th>Jenis Kelamin</th>
-                    <th>No Telepon</th>
-                    <th>Paket</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php
-            if ($result && $result->num_rows > 0) { // ✅ Pastikan $result tidak null atau error
-                while ($row = $result->fetch_assoc()) {
-            echo "<tr>";
-            echo "<td>" . htmlspecialchars($row['no_reg']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['nama']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['tanggal_lahir']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['alamat']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['kelas']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['asal_sekolah']) . "</td>";
-            echo "<td>" . ($row['jenis_kelamin'] == 'L' ? 'Laki-laki' : 'Perempuan') . "</td>";
-            echo "<td>" . htmlspecialchars($row['no_telp']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['id_paket']) . "</td>";
-            echo "</tr>";
-        }
-    } else {
-        echo "<tr><td colspan='9' class='text-center'>Belum ada murid yang divalidasi</td></tr>";
-    }
-    ?>
-</tbody>
+            <table class="table table-bordered">
+                <thead class="table-success">
+                    <tr>
+                        <th>No Registrasi</th>
+                        <th>Nama</th>
+                        <th>Tanggal Lahir</th>
+                        <th>Alamat</th>
+                        <th>Kelas</th>
+                        <th>Asal Sekolah</th>
+                        <th>Jenis Kelamin</th>
+                        <th>No Telepon</th>
+                        <th>Paket</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if ($result && $result->num_rows > 0) { // ✅ Pastikan $result tidak null atau error
+                        while ($row = $result->fetch_assoc()) {
+                            echo "<tr>";
+                            echo "<td>" . htmlspecialchars($row['no_reg']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['nama']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['tanggal_lahir']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['alamat']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['kelas']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['asal_sekolah']) . "</td>";
+                            echo "<td>" . ($row['jenis_kelamin'] == 'L' ? 'Laki-laki' : 'Perempuan') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['no_telp']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['id_paket']) . "</td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='9' class='text-center'>Belum ada murid yang divalidasi</td></tr>";
+                    }
+                    ?>
+                </tbody>
 
-<main>
-<?= require('layouts/footer.php');?>
+                <main>
+                    <?= require('layouts/footer.php'); ?>
 </body>
 <html>

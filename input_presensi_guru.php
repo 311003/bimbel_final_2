@@ -117,10 +117,10 @@ if (isset($_POST['tambah_presensi'])) {
         $gaji=$guru['gaji'];
         $sisa_bayar=$guru['gaji'];
 
-        $query_detail = "INSERT INTO pembayaran_guru (id_presensi, id_guru,id_jadwal,  id_paket,  nama, gaji,sisa_bayar,status_pembayaran) 
-                VALUES (?, ?, ?, ?,?,?,?,?)";
+        $query_detail = "INSERT INTO pembayaran_guru (id_presensi, id_guru,id_jadwal,  id_paket,  nama, gaji,sisa_bayar,status_pembayaran,tanggal_bayar) 
+                VALUES (?, ?, ?, ?,?,?,?,?,?)";
         $stmt_detail = $conn->prepare($query_detail);
-        $stmt_detail->bind_param("iiiissss", $id_presensi, $id_guru, $id_jadwal, $id_paket, $nama,$gaji,$sisa_bayar,$status_bayar);
+        $stmt_detail->bind_param("iiissssss", $id_presensi, $id_guru, $id_jadwal, $id_paket, $nama,$gaji,$sisa_bayar,$status_bayar,$tanggal_presensi);
         $stmt_detail->execute();
         $stmt_detail->close();
 

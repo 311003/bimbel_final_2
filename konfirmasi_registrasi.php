@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Jika tombol validasi ditekan
 if (isset($_POST['validasi'])) {
@@ -196,7 +195,7 @@ $conn->close();
             </table>
         </div>
     </main>
-    
+
     <?= require('layouts/footer.php'); ?>
     <script>
         let table = new DataTable('#viewTable', {

@@ -1,14 +1,15 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
+// echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
+require 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
-require 'PHPMailer/src/Exception.php';
+// require 'PHPMailer/src/PHPMailer.php';
+// require 'PHPMailer/src/SMTP.php';
+// require 'PHPMailer/src/Exception.php';
 include 'db_connection.php';
 
 // Query guru dan murid (harus di luar blok POST agar bisa dipakai di HTML)
@@ -22,11 +23,11 @@ $murid_result = $conn->query("SELECT m.* FROM master_murid m
 function createUser($username, $email, $password, $role, $id_ref)
 {
     global $conn;
-    $defaultStatus=1;
+    $defaultStatus = 1;
     $hashed = password_hash($password, PASSWORD_BCRYPT);
     $stmt = $conn->prepare("INSERT INTO tm_user (username, email, password, role, id_ref, is_active) 
                             VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssi", $username, $email, $hashed, $role, $id_ref,$defaultStatus);
+    $stmt->bind_param("sssssi", $username, $email, $hashed, $role, $id_ref, $defaultStatus);
 
     return $stmt->execute();
 }
@@ -74,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
     $role     = $_POST['role'];
     $id_ref   = $_POST['id_ref_murid'];
-    if($role == 2){
+    if ($role == 2) {
         $id_ref   = $_POST['id_ref_guru'];
     }
     // $activation_code = bin2hex(random_bytes(16));
@@ -137,9 +138,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <?= require('layouts/header.php'); ?>
     <?= require('layouts/sidemenu_owner.php'); ?>
-    <div class="container py-5">
+    <main id="main" class="main">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-12">
                 <div class="card shadow-lg rounded-4 p-4">
                     <h3 class="mb-4">Tambah Master Pengguna</h3>
 
@@ -196,12 +197,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="mt-3">
                             <a href="list_user.php" class="btn btn-outline-secondary">Lihat Daftar Pengguna</a>
                         </div>
-                                </form>
+                    </form>
 
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+  
     <?= require('layouts/footer.php') ?>
     <script>
         function updateIdRefOptions() {

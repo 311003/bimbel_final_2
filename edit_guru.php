@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Debugging: Menampilkan error jika ada
 error_reporting(E_ALL);
@@ -37,7 +36,7 @@ if (isset($_GET['id_guru'])) {
         // Query UPDATE data ke database
         $query_update = "UPDATE guru SET nama_guru=?, tanggal_lahir=?, alamat=?, no_telp=?, pendidikan=?,gaji=? WHERE id_guru=?";
         $stmt_update = $conn->prepare($query_update);
-        $stmt_update->bind_param("sssssss", $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan,$gaji, $id_guru);
+        $stmt_update->bind_param("sssssss", $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan, $gaji, $id_guru);
 
         if ($stmt_update->execute()) {
             echo "<script>alert('Data berhasil diperbarui!'); window.location.href='master_guru.php';</script>";
@@ -59,35 +58,35 @@ if (isset($_GET['id_guru'])) {
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Edit Guru</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+    <title>Edit Guru</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
 
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
-  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
-  <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
-  <link href="assets/css/custom.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
 
-  <!-- =======================================================
+    <!-- =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
@@ -97,22 +96,21 @@ if (isset($_GET['id_guru'])) {
 </head>
 
 <body>
-<?= require('layouts/header.php');?>
-<?= require('layouts/sidemenu_owner.php');?>
+    <?= require('layouts/header.php'); ?>
+    <?= require('layouts/sidemenu_owner.php'); ?>
 
 </body>
-  <main id="main" class="main">
+<main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>Edit Data Guru</h1>
+        <h1>Edit Data Guru</h1>
     </div><!-- End Page Title -->
 
     <!-- Form -->
 
-    <form method="POST" action="" enctype="multipart/form-data">
 
     <div class="card p-5 mb-5">
-    <form method="POST" action="" enctype="multipart/form-data">
+        <form method="POST" action="" enctype="multipart/form-data">
 
             <!-- ID Guru (Read-Only) -->
             <div class="mb-3">
@@ -168,22 +166,22 @@ if (isset($_GET['id_guru'])) {
 
         </form>
     </div>
-</div>
 
-<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Membatasi input tanggal lahir agar tidak bisa memilih hari ini atau ke depan
-    window.addEventListener("DOMContentLoaded", function () {
-        const tanggalLahirInput = document.getElementById("tanggal_lahir");
-        if (tanggalLahirInput) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const maxDate = yesterday.toISOString().split('T')[0];
-            tanggalLahirInput.setAttribute("max", maxDate);
-        }
-    });
-</script>
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Membatasi input tanggal lahir agar tidak bisa memilih hari ini atau ke depan
+        window.addEventListener("DOMContentLoaded", function() {
+            const tanggalLahirInput = document.getElementById("tanggal_lahir");
+            if (tanggalLahirInput) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const maxDate = yesterday.toISOString().split('T')[0];
+                tanggalLahirInput.setAttribute("max", maxDate);
+            }
+        });
+    </script>
 </main>
-<?= require('layouts/footer.php');?>
+<?= require('layouts/footer.php'); ?>
 </body>
+
 </html>

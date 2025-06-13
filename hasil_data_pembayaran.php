@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Handling form submission for adding new payment data
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -185,22 +184,22 @@ $conn->close();
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($row = $result_pembayaran->fetch_assoc()) { 
-                         $check="
+                    <?php while ($row = $result_pembayaran->fetch_assoc()) {
+                        $check = "
                          SELECT 
                              COUNT(*) as total
                          FROM bukti_pembayaran
                          LEFT JOIN pembayaran ON pembayaran.id_pembayaran = bukti_pembayaran.id_pembayaran 
-                         WHERE bukti_pembayaran.status = 0 AND  pembayaran.id_pembayaran=". $row['id_pembayaran'];
-                         
-                         $check = $conn->query($check);
-                         $total=0;
-                         if($check){
-                             $total=$check->fetch_assoc()['total'];
-                         }
-                         
+                         WHERE bukti_pembayaran.status = 0 AND  pembayaran.id_pembayaran=" . $row['id_pembayaran'];
 
-                        ?>
+                        $check = $conn->query($check);
+                        $total = 0;
+                        if ($check) {
+                            $total = $check->fetch_assoc()['total'];
+                        }
+
+
+                    ?>
                         <tr>
                             <td><?= isset($row['id_pembayaran']) ? htmlspecialchars($row['id_pembayaran']) : 'N/A' ?></td>
                             <td><?= isset($row['nama_murid']) ? htmlspecialchars($row['nama_murid']) : 'Unknown' ?></td>
@@ -210,23 +209,23 @@ $conn->close();
                             <td>Rp <?= isset($row['sisa_biaya']) ? number_format($row['sisa_biaya'], 2, ',', '.') : '0,00' ?></td>
                             <td>
                                 <?php
-                                
-                                    if($total>0){
-                                        ?>
-                                        <span class="badge bg-info">Menunngu Konfirmasi</span>
-                                        <?php
-                                    }else{
-                                        ?>
-                                        <?php if (isset($row['sisa_biaya']) && $row['sisa_biaya'] > 0): ?>
-                                    <span class="badge bg-warning">Belum Lunas</span>
-                                <?php else: ?>
-                                    <span class="badge bg-success">Lunas</span>
-                                <?php endif; ?>
-                                        
-                                        <?php
-                                    }
+
+                                if ($total > 0) {
                                 ?>
-                                
+                                    <span class="badge bg-info">Menunngu Konfirmasi</span>
+                                <?php
+                                } else {
+                                ?>
+                                    <?php if (isset($row['sisa_biaya']) && $row['sisa_biaya'] > 0): ?>
+                                        <span class="badge bg-warning">Belum Lunas</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-success">Lunas</span>
+                                    <?php endif; ?>
+
+                                <?php
+                                }
+                                ?>
+
                             </td>
                             <td>
                                 <?php

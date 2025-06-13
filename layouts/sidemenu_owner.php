@@ -68,7 +68,7 @@
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="laporannav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li><a href="master_murid.php"><i class="bi bi-circle"></i><span>CashFlow</span></a></li>
+        <li><a href="cashflow_view.php"><i class="bi bi-circle"></i><span>Cashflow</span></a></li>
         <li><a href="master_guru.php"><i class="bi bi-circle"></i><span>Gaji Guru</span></a></li>
         <li><a href="master_paket.php"><i class="bi bi-circle"></i><span>Murid</span></a></li>
       </ul>

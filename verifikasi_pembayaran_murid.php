@@ -3,6 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include 'connection.php';
+require 'classes/Cashflow.php';
 
 // Ambil id_pembayaran dari URL
 $id_pembayaran = $_GET['id_pembayaran'] ?? '';
@@ -12,7 +13,7 @@ $id_pembayaran = $_GET['id_pembayaran'] ?? '';
 //           FROM pembayaran 
 //           LEFT JOIN paket_bimbel ON pembayaran.id_paket = paket_bimbel.id_paket 
 //           WHERE pembayaran.id_pembayaran = ?";
- $query = "SELECT 
+$query = "SELECT 
  r.tanggal_bayar, r.no_reg, r.id_paket, r.id_murid, r.nama, r.paket, r.biaya,r.id_pembayaran,
  sum(b.jumlah_bayar) as jumlah_bayar, (r.biaya - sum(b.jumlah_bayar)) AS sisa_biaya, r.status_pembayaran,
  paket_bimbel.paket 
@@ -83,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Menghitung jumlah bayar dan sisa biaya
     $jumlah_bayar_total = floatval($jumlah_bayar_lama) + floatval($jumlah_bayar);
     $sisa_biaya = floatval($biaya) - $jumlah_bayar_total;
-    $status_pembayaran = ($sisa_biaya <= 0) ? 'Lunas' : 'Belum Lunas';    
+    $status_pembayaran = ($sisa_biaya <= 0) ? 'Lunas' : 'Belum Lunas';
 
     // Tentukan status pembayaran
     $status_pembayaran = ($sisa_biaya <= 0) ? 'Lunas' : 'Belum Lunas';
@@ -102,13 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt_insert->bind_param("issss", $id_pembayaran, $id_murid, $dateToday, $jumlah_bayar, $bukti_pembayaran);
         if ($stmt_insert->execute()) {
             // add to Cashflow
-            $keterangan="Pembarayan murid";
-            $tipe="Pemasukan";
-            $query_insert = "INSERT INTO cashflow (tipe,keterangan,tanggal) VALUES (?, ?,?)";
-            $cash_insert = $conn->prepare($query_insert);
-            $dateToday = date('Y-m-d h:i:s');
-            $cash_insert->bind_param("sss", $tipe, $keterangan, $dateToday);
-            $cash_insert->execute();
+            $id_ref = $conn->insert_id;
+            $keterangan = "Pembarayan murid";
+            $tipe = "Pemasukan";
+            $cashflow = new Cashflow($conn);
+            $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran',$id_ref);
 
             echo "<script>alert('Data pembayaran berhasil diperbarui!'); window.location.href='input_pembayaran_murid.php';</script>";
         } else {
@@ -126,34 +125,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Verifikasi Pembayaran Murid</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+    <title>Verifikasi Pembayaran Murid</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
 
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
-  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
-  <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="assets/css/style.css" rel="stylesheet">
 
-  <!-- =======================================================
+    <!-- =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
@@ -164,111 +163,112 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <body>
 
-<?= require('layouts/header.php');?>
-<?= require('layouts/sidemenu_murid.php');?>
+    <?= require('layouts/header.php'); ?>
+    <?= require('layouts/sidemenu_murid.php'); ?>
 
-<main id="main" class="main">
-    <div class="pagetitle">
-        <h1>Tambah Data Pembayaran</h1>
-    </div>
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Tambah Data Pembayaran</h1>
+        </div>
 
-    <div class="card p-5 mb-5">
-        <form method="POST" action="verifikasi_pembayaran_murid.php" enctype="multipart/form-data">
+        <div class="card p-5 mb-5">
+            <form method="POST" action="verifikasi_pembayaran_murid.php" enctype="multipart/form-data">
 
-            <!-- ID Pembayaran -->
-            <div class="form-group mb-3">
-                <label for="id_pembayaran">ID Pembayaran</label>
-                <input type="text" class="form-control" id="id_pembayaran" name="id_pembayaran" value="<?= htmlspecialchars($data_pembayaran['id_pembayaran']) ?>" readonly>
-            </div>
+                <!-- ID Pembayaran -->
+                <div class="form-group mb-3">
+                    <label for="id_pembayaran">ID Pembayaran</label>
+                    <input type="text" class="form-control" id="id_pembayaran" name="id_pembayaran" value="<?= htmlspecialchars($data_pembayaran['id_pembayaran']) ?>" readonly>
+                </div>
 
-            <!-- ID Murid -->
-            <div class="form-group mb-3">
-                <label for="id_murid">ID Murid</label>
-                <input type="text" class="form-control" id="id_murid" name="id_murid" 
-                      value="<?= htmlspecialchars($data_pembayaran['id_murid']) ?> - <?= htmlspecialchars($data_pembayaran['nama']) ?>" 
-                      readonly>
-            </div>
+                <!-- ID Murid -->
+                <div class="form-group mb-3">
+                    <label for="id_murid">ID Murid</label>
+                    <input type="text" class="form-control" id="id_murid" name="id_murid"
+                        value="<?= htmlspecialchars($data_pembayaran['id_murid']) ?> - <?= htmlspecialchars($data_pembayaran['nama']) ?>"
+                        readonly>
+                </div>
 
-            <!-- Nama Murid (Otomatis Terisi) -->
-            <div class="form-group mb-3">
-                <label for="nama">Nama Murid</label>
-                <input type="text" class="form-control" id="nama" name="nama" value="<?= htmlspecialchars($data_pembayaran['nama']) ?>" placeholder="Nama Murid" readonly>
-            </div>
+                <!-- Nama Murid (Otomatis Terisi) -->
+                <div class="form-group mb-3">
+                    <label for="nama">Nama Murid</label>
+                    <input type="text" class="form-control" id="nama" name="nama" value="<?= htmlspecialchars($data_pembayaran['nama']) ?>" placeholder="Nama Murid" readonly>
+                </div>
 
-        <!-- Tampilkan Nama Paket -->
-            <div class="form-group mb-3">
-                <label for="nama_paket">Pilihan Paket</label>
-                <input type="text" class="form-control" id="nama_paket"
-                      value="<?= htmlspecialchars($data_pembayaran['paket']) ?>" readonly>
-            </div>
+                <!-- Tampilkan Nama Paket -->
+                <div class="form-group mb-3">
+                    <label for="nama_paket">Pilihan Paket</label>
+                    <input type="text" class="form-control" id="nama_paket"
+                        value="<?= htmlspecialchars($data_pembayaran['paket']) ?>" readonly>
+                </div>
 
-            <!-- Simpan ID Paket untuk dikirim ke server -->
-            <input type="hidden" name="id_paket" value="<?= htmlspecialchars($data_pembayaran['id_paket']) ?>">
+                <!-- Simpan ID Paket untuk dikirim ke server -->
+                <input type="hidden" name="id_paket" value="<?= htmlspecialchars($data_pembayaran['id_paket']) ?>">
 
-            <!-- Biaya Paket -->
-            <div class="form-group mb-3">
-                <label for="biaya">Biaya Paket</label>
-                <input type="text" class="form-control" id="biaya" name="biaya" value="<?= htmlspecialchars($data_pembayaran['biaya']) ?>" readonly>
-            </div>
+                <!-- Biaya Paket -->
+                <div class="form-group mb-3">
+                    <label for="biaya">Biaya Paket</label>
+                    <input type="text" class="form-control" id="biaya" name="biaya" value="<?= htmlspecialchars($data_pembayaran['biaya']) ?>" readonly>
+                </div>
 
-            <!-- Jumlah Bayar -->
-            <div class="form-group mb-3">
-                <label for="jumlah_bayar">Jumlah Bayar</label>
-                <input type="number" class="form-control" id="jumlah_bayar" name="jumlah_bayar" min="0" value="<?= htmlspecialchars($data_pembayaran['jumlah_bayar']) ?>" required>
-            </div>
+                <!-- Jumlah Bayar -->
+                <div class="form-group mb-3">
+                    <label for="jumlah_bayar">Jumlah Bayar</label>
+                    <input type="number" class="form-control" id="jumlah_bayar" name="jumlah_bayar" min="0" value="<?= htmlspecialchars($data_pembayaran['jumlah_bayar']) ?>" required>
+                </div>
 
-            <!-- Sisa Biaya -->
-            <div class="form-group mb-3">
-                <label for="sisa_biaya">Sisa Biaya</label>
-                <input type="text" class="form-control" id="sisa_biaya" name="sisa_biaya" value="<?= htmlspecialchars($data_pembayaran['sisa_biaya']) ?>" readonly>
-            </div>
+                <!-- Sisa Biaya -->
+                <div class="form-group mb-3">
+                    <label for="sisa_biaya">Sisa Biaya</label>
+                    <input type="text" class="form-control" id="sisa_biaya" name="sisa_biaya" value="<?= htmlspecialchars($data_pembayaran['sisa_biaya']) ?>" readonly>
+                </div>
 
-            <!-- Status Pembayaran -->
-            <div class="form-group mb-3">
-                <label for="status_pembayaran">Status Pembayaran</label>
-                <input type="text" class="form-control" id="status_pembayaran" name="status_pembayaran" value="<?= htmlspecialchars($data_pembayaran['status_pembayaran']) ?>" readonly>
-            </div>
+                <!-- Status Pembayaran -->
+                <div class="form-group mb-3">
+                    <label for="status_pembayaran">Status Pembayaran</label>
+                    <input type="text" class="form-control" id="status_pembayaran" name="status_pembayaran" value="<?= htmlspecialchars($data_pembayaran['status_pembayaran']) ?>" readonly>
+                </div>
 
-             <!-- Bukti Pembayaran -->
-             <div class="form-group mb-3">
-                <label for="bukti_pembayaran">Upload Bukti Pembayaran</label>
-                <input type="file" class="form-control" id="bukti_pembayaran" name="bukti_pembayaran" accept="image/*,application/pdf">
-                <?php if (!empty($data_pembayaran['bukti_pembayaran'])): ?>
-                    <div class="mt-2">
-                        <label>Bukti Pembayaran Saat Ini:</label><br>
-                        <a href="<?= $data_pembayaran['bukti_pembayaran'] ?>" target="_blank">Lihat Bukti Pembayaran</a>
-                    </div>
-                <?php endif; ?>
-            </div>
+                <!-- Bukti Pembayaran -->
+                <div class="form-group mb-3">
+                    <label for="bukti_pembayaran">Upload Bukti Pembayaran</label>
+                    <input type="file" class="form-control" id="bukti_pembayaran" name="bukti_pembayaran" accept="image/*,application/pdf">
+                    <?php if (!empty($data_pembayaran['bukti_pembayaran'])): ?>
+                        <div class="mt-2">
+                            <label>Bukti Pembayaran Saat Ini:</label><br>
+                            <a href="<?= $data_pembayaran['bukti_pembayaran'] ?>" target="_blank">Lihat Bukti Pembayaran</a>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
-            <!-- Submit Button -->
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary" name="verifikasi_pembayaran">Kirim</button>
-                <a href="input_pembayaran_murid.php" class="btn btn-secondary">Batal</a>
-            </div>
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary" name="verifikasi_pembayaran">Kirim</button>
+                    <a href="input_pembayaran_murid.php" class="btn btn-secondary">Batal</a>
+                </div>
 
-        </form>
-    </div>
-</main>
+            </form>
+        </div>
+    </main>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const jumlahBayarInput = document.getElementById("jumlah_bayar_input");
-    const biayaPaketInput = document.getElementById("biaya_paket_input");
-    const sisaBiayaField = document.getElementById("sisa_biaya");
-    const statusPembayaranField = document.getElementById("status_pembayaran");
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const jumlahBayarInput = document.getElementById("jumlah_bayar_input");
+            const biayaPaketInput = document.getElementById("biaya_paket_input");
+            const sisaBiayaField = document.getElementById("sisa_biaya");
+            const statusPembayaranField = document.getElementById("status_pembayaran");
 
-    jumlahBayarInput.addEventListener("input", function () {
-        const biaya = parseFloat(biayaPaketInput.value) || 0;
-        const jumlahBayar = parseFloat(jumlahBayarInput.value) || 0;
-        const sisa = biaya - jumlahBayar;
+            jumlahBayarInput.addEventListener("input", function() {
+                const biaya = parseFloat(biayaPaketInput.value) || 0;
+                const jumlahBayar = parseFloat(jumlahBayarInput.value) || 0;
+                const sisa = biaya - jumlahBayar;
 
-        sisaBiayaField.value = sisa;
-        statusPembayaranField.value = (sisa <= 0) ? "Lunas" : "Belum Lunas";
-    });
-});
-</script>
+                sisaBiayaField.value = sisa;
+                statusPembayaranField.value = (sisa <= 0) ? "Lunas" : "Belum Lunas";
+            });
+        });
+    </script>
 </body>
+
 </html>
 
 <script>
@@ -276,22 +276,24 @@ document.addEventListener("DOMContentLoaded", function () {
     function autofillMuridDetails(selectElement) {
         // Ambil data dari option yang dipilih
         var selectedOption = selectElement.options[selectElement.selectedIndex];
-        
+
         // Ambil nama_murid dan biaya dari atribut data
         var namaMurid = selectedOption.getAttribute('data-nama');
         var biaya = selectedOption.getAttribute('data-biaya');
-        
+
         // Isi field nama_murid dan biaya
         document.getElementById('nama_murid').value = namaMurid;
         document.getElementById('biaya').value = biaya;
     }
 
     sisaInput.value = new Intl.NumberFormat('id-ID', {
-    style: 'currency', currency: 'IDR'
-}).format(sisa);
+        style: 'currency',
+        currency: 'IDR'
+    }).format(sisa);
 </script>
 
 </main>
-<?= require('layouts/footer.php');?>
+<?= require('layouts/footer.php'); ?>
 </body>
+
 </html>

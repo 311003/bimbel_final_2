@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Handling form submission for adding new payment data
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -60,14 +59,14 @@ LEFT JOIN (
     SELECT 
         id_pembayaran, 
         COALESCE(SUM(jumlah_bayar), 0) AS total_bayar
-    FROM bukti_pembayaran
+    FROM bukti_pembayaran_guru
     GROUP BY id_pembayaran
 ) b ON r.id_pembayaran = b.id_pembayaran
 SET 
     r.jumlah_bayar = b.total_bayar,
-    r.sisa_biaya = r.biaya - b.total_bayar,
+    r.sisa_bayar = r.gaji - b.total_bayar,
     r.status_pembayaran = CASE
-        WHEN b.total_bayar >= r.biaya THEN 'Lunas'
+        WHEN b.total_bayar >= r.gaji THEN 'Lunas'
         ELSE 'Belum Lunas'
     END
 ";
@@ -81,31 +80,30 @@ SELECT
     r.id_pembayaran,
     r.id_paket, 
     p.paket AS nama_paket, 
-    p.biaya, 
-    r.id_murid, 
-    m.nama AS nama_murid,
+    r.gaji, 
+    r.id_guru, 
+    g.nama_guru AS nama,
     -- Hitung jumlah bayar meskipun belum ada data
     COALESCE(SUM(b.jumlah_bayar), 0) AS jumlah_bayar,
-    -- Hitung sisa biaya
-    (p.biaya - COALESCE(SUM(b.jumlah_bayar), 0)) AS sisa_biaya,
+    -- Hitung sisa bayar
+    (r.gaji - COALESCE(SUM(b.jumlah_bayar), 0)) AS sisa_bayar,
     -- Status otomatis tergantung sisa biaya
     CASE 
-        WHEN COALESCE(SUM(b.jumlah_bayar), 0) >= p.biaya THEN 'Lunas'
+        WHEN COALESCE(SUM(b.jumlah_bayar), 0) >= r.gaji THEN 'Lunas'
         ELSE 'Belum Lunas'
     END AS status_pembayaran
-FROM pembayaran r
-LEFT JOIN bukti_pembayaran b ON b.id_pembayaran = r.id_pembayaran 
+FROM pembayaran_guru r
+LEFT JOIN bukti_pembayaran_guru b ON b.id_pembayaran = r.id_pembayaran 
 LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket
-LEFT JOIN master_murid m ON r.id_murid = m.id_murid
-LEFT JOIN registrasi_murid reg ON r.id_murid = reg.no_reg
-WHERE reg.konfirmasi_registrasi = 'Divalidasi' AND m.status_murid =1
+LEFT JOIN guru g ON r.id_guru = g.id_guru
+WHERE g.id_status_guru =1
 GROUP BY 
     r.id_pembayaran,
     r.id_paket,
     p.paket,
-    p.biaya,
-    r.id_murid,
-    m.nama
+    r.gaji,
+    r.id_guru,
+    g.nama_guru
 ";
 
 $result_pembayaran = $conn->query($query_pembayaran);
@@ -179,64 +177,64 @@ $conn->close();
                         <th>Tanggal</th>
                         <th>Gaji</th>
                         <th>Jumlah Bayar</th>
-                        <th>Sisa Biaya</th>
+                        <th>Sisa Bayar</th>
                         <th>Status Pembayaran</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($row = $result_pembayaran->fetch_assoc()) { 
-                         $check="
+                    <?php while ($row = $result_pembayaran->fetch_assoc()) {
+                        $check = "
                          SELECT 
                              COUNT(*) as total
-                         FROM bukti_pembayaran
-                         LEFT JOIN pembayaran ON pembayaran.id_pembayaran = bukti_pembayaran.id_pembayaran 
-                         WHERE bukti_pembayaran.status = 0 AND  pembayaran.id_pembayaran=". $row['id_pembayaran'];
-                         
-                         $check = $conn->query($check);
-                         $total=0;
-                         if($check){
-                             $total=$check->fetch_assoc()['total'];
-                         }
-                         
+                         FROM bukti_pembayaran_guru
+                         LEFT JOIN pembayaran_guru ON pembayaran_guru.id_pembayaran = bukti_pembayaran_guru.id_pembayaran 
+                         WHERE bukti_pembayaran_guru.status = 0 AND  pembayaran_guru.id_pembayaran=" . $row['id_pembayaran'];
 
-                        ?>
+                        $check = $conn->query($check);
+                        $total = 0;
+                        if ($check) {
+                            $total = $check->fetch_assoc()['total'];
+                        }
+
+
+                    ?>
                         <tr>
                             <td><?= isset($row['id_pembayaran']) ? htmlspecialchars($row['id_pembayaran']) : 'N/A' ?></td>
-                            <td><?= isset($row['nama_murid']) ? htmlspecialchars($row['nama_murid']) : 'Unknown' ?></td>
+                            <td><?= isset($row['nama']) ? htmlspecialchars($row['nama']) : 'Unknown' ?></td>
                             <td><?= isset($row['nama_paket']) ? htmlspecialchars($row['nama_paket']) : 'Unknown' ?></td>
-                            <td>Rp <?= isset($row['biaya']) ? number_format($row['biaya'], 2, ',', '.') : '0,00' ?></td>
+                            <td>Rp <?= isset($row['gaji']) ? number_format($row['gaji'], 2, ',', '.') : '0,00' ?></td>
                             <td>Rp <?= isset($row['jumlah_bayar']) ? number_format($row['jumlah_bayar'], 2, ',', '.') : '0,00' ?></td>
-                            <td>Rp <?= isset($row['sisa_biaya']) ? number_format($row['sisa_biaya'], 2, ',', '.') : '0,00' ?></td>
+                            <td>Rp <?= isset($row['sisa_bayar']) ? number_format($row['sisa_bayar'], 2, ',', '.') : '0,00' ?></td>
                             <td>
                                 <?php
-                                
-                                    if($total>0){
-                                        ?>
-                                        <span class="badge bg-info">Menunngu Konfirmasi</span>
-                                        <?php
-                                    }else{
-                                        ?>
-                                        <?php if (isset($row['sisa_biaya']) && $row['sisa_biaya'] > 0): ?>
-                                    <span class="badge bg-warning">Belum Lunas</span>
-                                <?php else: ?>
-                                    <span class="badge bg-success">Lunas</span>
-                                <?php endif; ?>
-                                        
-                                        <?php
-                                    }
+
+                                if ($total > 0) {
                                 ?>
-                                
+                                    <span class="badge bg-info">Menunngu Konfirmasi</span>
+                                <?php
+                                } else {
+                                ?>
+                                    <?php if (isset($row['sisa_bayar']) && $row['sisa_bayar'] > 0): ?>
+                                        <span class="badge bg-warning">Belum Lunas</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-success">Lunas</span>
+                                    <?php endif; ?>
+
+                                <?php
+                                }
+                                ?>
+
                             </td>
                             <td>
                                 <?php
-                                if ((intval($row['jumlah_bayar']) < intval($row['biaya'])) || (intval($row['sisa_biaya']) > 0)) {
+                                if ((intval($row['jumlah_bayar']) < intval($row['gaji'])) || (intval($row['sisa_bayar']) > 0)) {
                                 ?>
-                                    <a href="verifikasi_pembayaran_owner.php?id_pembayaran=<?= isset($row['id_pembayaran']) ? $row['id_pembayaran'] : '' ?>" class="btn btn-sm btn-warning">Verifikasi
+                                    <a href="verifikasi_pembayaran_guru.php?id_pembayaran=<?= isset($row['id_pembayaran']) ? $row['id_pembayaran'] : '' ?>" class="btn btn-sm btn-warning">Verifikasi
                                     <?php
                                 }
                                     ?>
-                                    <a href="bukti_pembayaran_owner.php?id_pembayaran=<?= isset($row['id_pembayaran']) ? $row['id_pembayaran'] : '' ?>" class="btn btn-sm btn-warning">Bukti Bayar
+                                    <a href="bukti_pembayaran_guru.php?id_pembayaran=<?= isset($row['id_pembayaran']) ? $row['id_pembayaran'] : '' ?>" class="btn btn-sm btn-warning">Bukti Bayar
                             </td>
                         </tr>
                     <?php } ?>

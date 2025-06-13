@@ -1,7 +1,6 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 // Ambil No Registrasi dari URL
 $no_reg = isset($_GET['no_reg']) ? $_GET['no_reg'] : '';
@@ -86,7 +85,6 @@ if (isset($_POST['update'])) {
         // Commit transaksi jika semua update berhasil
         $conn->commit();
         echo "<script>alert('Data berhasil diperbarui di kedua tabel!'); window.location.href='hasil_data_registrasi.php';</script>";
-
     } catch (Exception $e) {
         // Rollback transaksi jika ada kesalahan
         $conn->rollback();
@@ -101,35 +99,35 @@ if (isset($_POST['update'])) {
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Edit Registrasi</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+    <title>Edit Registrasi</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
 
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
-  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
-  <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
-  <link href="assets/css/custom.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
 
-  <!-- =======================================================
+    <!-- =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
@@ -139,100 +137,101 @@ if (isset($_POST['update'])) {
 </head>
 
 <body>
-<?= require('layouts/header.php');?>
-<?= require('layouts/sidemenu_owner.php');?>
+    <?= require('layouts/header.php'); ?>
+    <?= require('layouts/sidemenu_owner.php'); ?>
 
-<main id="main" class="main">
-    <div class="pagetitle">
-        <h1>Edit Data Murid</h1>
-    </div>
-
-    <form method="POST" action="" enctype="multipart/form-data">
-        <div class="card p-5 mb-5">
-            <!-- No Registrasi -->
-            <div class="mb-3">
-                <label>No Registrasi</label>
-                <input type="text" class="form-control" name="no_reg" value="<?= htmlspecialchars($murid['no_reg'] ?? '') ?>" readonly>
-            </div>
-
-            <!-- Tanggal Registrasi -->
-            <div class="form-group mb-3">
-                <label for="tgl_reg">Tanggal Registrasi</label>
-                <input type="date" class="form-control" id="tgl_reg" name="tgl_reg" value="<?= isset($murid['tgl_reg']) ? date('Y-m-d', strtotime($murid['tgl_reg'])) : '' ?>" required>
-            </div>
-            <!-- Nama Murid -->
-            <div class="mb-3">
-                <label>ID murid</label>
-                <input type="text" class="form-control" name="id_murid" value="<?= htmlspecialchars($murid['id_murid'] ?? '') ?>" readonly>
-            </div>
-
-            <!-- Nama Murid -->
-            <div class="mb-3">
-                <label>Nama Murid</label>
-                <input type="text" class="form-control" name="nama" value="<?= htmlspecialchars($murid['nama'] ?? '') ?>" required>
-            </div>
-
-            <!-- Tanggal Lahir -->
-            <div class="form-group mb-3">
-                <label for="tanggal_lahir">Tanggal Lahir</label>
-                <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir" value="<?= $murid['tanggal_lahir'] ?? '' ?>" required>
-            </div>
-
-            <!-- Alamat Rumah -->
-            <div class="form-group mb-3">
-                <label for="alamat">Alamat Rumah</label>
-                <input type="text" class="form-control" id="alamat" name="alamat" value="<?= htmlspecialchars($murid['alamat'] ?? '') ?>" required>
-            </div>
-
-            <!-- Kelas -->
-            <div class="form-group mb-3">
-                <label for="kelas">Kelas</label>
-                <input type="text" class="form-control" id="kelas" name="kelas" value="<?= htmlspecialchars($murid['kelas'] ?? '') ?>" required>
-            </div>
-
-            <!-- Asal Sekolah -->
-            <div class="form-group mb-3">
-                <label for="asal_sekolah">Asal Sekolah</label>
-                <input type="text" class="form-control" id="asal_sekolah" name="asal_sekolah" value="<?= htmlspecialchars($murid['asal_sekolah'] ?? '') ?>" required>
-            </div>
-
-            <!-- Jenis Kelamin -->
-            <div class="form-group mb-3">
-                <label for="jenis_kelamin">Jenis Kelamin</label><br>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="L" name="jenis_kelamin" value="L" <?= (isset($murid['jenis_kelamin']) && $murid['jenis_kelamin'] == 'L') ? 'checked' : '' ?> required>
-                    <label class="form-check-label" for="L">Laki-laki</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="P" name="jenis_kelamin" value="P" <?= (isset($murid['jenis_kelamin']) && $murid['jenis_kelamin'] == 'P') ? 'checked' : '' ?> required>
-                    <label class="form-check-label" for="P">Perempuan</label>
-                </div>
-            </div>
-
-            <!-- Nomor Telepon -->
-            <div class="form-group mb-3">
-                <label for="no_telp">Nomor Telepon</label>
-                <input type="text" class="form-control" id="no_telp" name="no_telp" value="<?= htmlspecialchars($murid['no_telp'] ?? '') ?>" required>
-            </div>
-
-            <!-- Pilihan Paket Bimbel -->
-            <div class="mb-3">
-                <label>Paket Bimbel:</label>
-                <select class="form-control" name="id_paket">
-                    <?php while ($paket = $result_paket->fetch_assoc()): ?>
-                        <option value="<?= htmlspecialchars($paket['id_paket']) ?>" <?= (isset($murid['id_paket']) && $murid['id_paket'] == $paket['id_paket']) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($paket['paket']) ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
-
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary" name="update">Update</button>
-            </div>
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Edit Data Murid</h1>
         </div>
-    </form>
-</main>
-<?= require('layouts/footer.php');?>
+
+        <form method="POST" action="" enctype="multipart/form-data">
+            <div class="card p-5 mb-5">
+                <!-- No Registrasi -->
+                <div class="mb-3">
+                    <label>No Registrasi</label>
+                    <input type="text" class="form-control" name="no_reg" value="<?= htmlspecialchars($murid['no_reg'] ?? '') ?>" readonly>
+                </div>
+
+                <!-- Tanggal Registrasi -->
+                <div class="form-group mb-3">
+                    <label for="tgl_reg">Tanggal Registrasi</label>
+                    <input type="date" class="form-control" id="tgl_reg" name="tgl_reg" value="<?= isset($murid['tgl_reg']) ? date('Y-m-d', strtotime($murid['tgl_reg'])) : '' ?>" required>
+                </div>
+                <!-- Nama Murid -->
+                <div class="mb-3">
+                    <label>ID murid</label>
+                    <input type="text" class="form-control" name="id_murid" value="<?= htmlspecialchars($murid['id_murid'] ?? '') ?>" readonly>
+                </div>
+
+                <!-- Nama Murid -->
+                <div class="mb-3">
+                    <label>Nama Murid</label>
+                    <input type="text" class="form-control" name="nama" value="<?= htmlspecialchars($murid['nama'] ?? '') ?>" required>
+                </div>
+
+                <!-- Tanggal Lahir -->
+                <div class="form-group mb-3">
+                    <label for="tanggal_lahir">Tanggal Lahir</label>
+                    <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir" value="<?= $murid['tanggal_lahir'] ?? '' ?>" required>
+                </div>
+
+                <!-- Alamat Rumah -->
+                <div class="form-group mb-3">
+                    <label for="alamat">Alamat Rumah</label>
+                    <input type="text" class="form-control" id="alamat" name="alamat" value="<?= htmlspecialchars($murid['alamat'] ?? '') ?>" required>
+                </div>
+
+                <!-- Kelas -->
+                <div class="form-group mb-3">
+                    <label for="kelas">Kelas</label>
+                    <input type="text" class="form-control" id="kelas" name="kelas" value="<?= htmlspecialchars($murid['kelas'] ?? '') ?>" required>
+                </div>
+
+                <!-- Asal Sekolah -->
+                <div class="form-group mb-3">
+                    <label for="asal_sekolah">Asal Sekolah</label>
+                    <input type="text" class="form-control" id="asal_sekolah" name="asal_sekolah" value="<?= htmlspecialchars($murid['asal_sekolah'] ?? '') ?>" required>
+                </div>
+
+                <!-- Jenis Kelamin -->
+                <div class="form-group mb-3">
+                    <label for="jenis_kelamin">Jenis Kelamin</label><br>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="L" name="jenis_kelamin" value="L" <?= (isset($murid['jenis_kelamin']) && $murid['jenis_kelamin'] == 'L') ? 'checked' : '' ?> required>
+                        <label class="form-check-label" for="L">Laki-laki</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="P" name="jenis_kelamin" value="P" <?= (isset($murid['jenis_kelamin']) && $murid['jenis_kelamin'] == 'P') ? 'checked' : '' ?> required>
+                        <label class="form-check-label" for="P">Perempuan</label>
+                    </div>
+                </div>
+
+                <!-- Nomor Telepon -->
+                <div class="form-group mb-3">
+                    <label for="no_telp">Nomor Telepon</label>
+                    <input type="text" class="form-control" id="no_telp" name="no_telp" value="<?= htmlspecialchars($murid['no_telp'] ?? '') ?>" required>
+                </div>
+
+                <!-- Pilihan Paket Bimbel -->
+                <div class="mb-3">
+                    <label>Paket Bimbel:</label>
+                    <select class="form-control" name="id_paket">
+                        <?php while ($paket = $result_paket->fetch_assoc()): ?>
+                            <option value="<?= htmlspecialchars($paket['id_paket']) ?>" <?= (isset($murid['id_paket']) && $murid['id_paket'] == $paket['id_paket']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($paket['paket']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary" name="update">Update</button>
+                </div>
+            </div>
+        </form>
+    </main>
+    <?= require('layouts/footer.php'); ?>
 </body>
+
 </html>

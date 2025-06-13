@@ -1,69 +1,69 @@
 <?php
 include 'connection.php'; // Pastikan file koneksi database sudah di-include
 session_start();
-echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
+// echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
-  // Generate ID Guru (Format: 01, 02, 03, dst.)
-  $query_id = "SELECT LPAD(COALESCE(MAX(CAST(id_paket AS UNSIGNED)) + 1, 1), 2, '0') AS id_paket FROM paket_bimbel";
-  $result = $conn->query($query_id);
-  $row = $result->fetch_assoc();
-  $id_paket = $row['id_paket'];
+// Generate ID Guru (Format: 01, 02, 03, dst.)
+$query_id = "SELECT LPAD(COALESCE(MAX(CAST(id_paket AS UNSIGNED)) + 1, 1), 2, '0') AS id_paket FROM paket_bimbel";
+$result = $conn->query($query_id);
+$row = $result->fetch_assoc();
+$id_paket = $row['id_paket'];
 
-  if (isset($_POST['tambah'])) {
-      // Ambil data dari form
-      $id_paket = $_POST['id_paket'];
-      $paket = $_POST['paket'];
+if (isset($_POST['tambah'])) {
+    // Ambil data dari form
+    $id_paket = $_POST['id_paket'];
+    $paket = $_POST['paket'];
 
-      // Query untuk insert data ke tabel_guru
-      $query_insert_paket = "INSERT INTO paket_bimbel (id_paket, paket)
+    // Query untuk insert data ke tabel_guru
+    $query_insert_paket = "INSERT INTO paket_bimbel (id_paket, paket)
                               VALUES (?, ?)";
-      $stmt_paket = $conn->prepare($query_insert_paket);
-      $stmt_paket->bind_param("ss", $id_paket, $paket);
+    $stmt_paket = $conn->prepare($query_insert_paket);
+    $stmt_paket->bind_param("ss", $id_paket, $paket);
 
-          // Eksekusi query 
-          if ($stmt_paket->execute()) {
-              echo "<script>alert('Data paket berhasil ditambahkan!'); window.location.href='master_paket.php';</script>";
-          } else {
-              echo "<script>alert('Terjadi kesalahan saat menyimpan data ke tabel paket!'); window.history.back();</script>";
-          }
-      $stmt_paket->close();
-      $conn->close();
-  }
-  ?>
+    // Eksekusi query 
+    if ($stmt_paket->execute()) {
+        echo "<script>alert('Data paket berhasil ditambahkan!'); window.location.href='master_paket.php';</script>";
+    } else {
+        echo "<script>alert('Terjadi kesalahan saat menyimpan data ke tabel paket!'); window.history.back();</script>";
+    }
+    $stmt_paket->close();
+    $conn->close();
+}
+?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Tambah Paket</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+    <title>Tambah Paket</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
 
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
-  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
-  <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
-  <link href="assets/css/custom.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
 
-  <!-- =======================================================
+    <!-- =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
@@ -73,42 +73,42 @@ echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 </head>
 
 <body>
-<?= require('layouts/header.php');?>
-<?= require('layouts/sidemenu_owner.php');?>
+    <?= require('layouts/header.php'); ?>
+    <?= require('layouts/sidemenu_owner.php'); ?>
 
     <main id="main" class="main">
 
-      <div class="pagetitle">
-        <h1>Tambah Data Paket Baru</h1>
-      </div><!-- End Page Title -->
+        <div class="pagetitle">
+            <h1>Tambah Data Paket Baru</h1>
+        </div><!-- End Page Title -->
 
-      <!-- Form -->
+        <!-- Form -->
 
-      <form method="POST" action="" enctype="multipart/form-data">
+        <form method="POST" action="" enctype="multipart/form-data">
 
-      <div class="card p-5 mb-5">
-      <form method="POST" action="" enctype="multipart/form-data">
-          
+            <div class="card p-5 mb-5">
+                <form method="POST" action="" enctype="multipart/form-data">
 
-          <!-- ID Guru -->
-          <div class="form-group mb-3">
-              <label for="id_paket">ID Paket</label>
-              <input type="text" class="form-control" id="id_paket" name="id_paket" >
-          </div>
 
-          <!-- Nama Guru -->
-          <div class="form-group mb-3">
-              <label for="paket">Mata Pelajaran</label>
-              <input type="text" class="form-control" id="paket" name="paket">
-          </div>
+                    <!-- ID Guru -->
+                    <div class="form-group mb-3">
+                        <label for="id_paket">ID Paket</label>
+                        <input type="text" class="form-control" id="id_paket" name="id_paket">
+                    </div>
 
-          <!-- Submit Button -->
-          <div class="text-center">
-              <button type="submit" class="btn btn-primary" name="tambah">Simpan</button>
-          </div>
-      </form>
-  </div>
-<main>
-<?= require('layouts/footer.php');?>
+                    <!-- Nama Guru -->
+                    <div class="form-group mb-3">
+                        <label for="paket">Mata Pelajaran</label>
+                        <input type="text" class="form-control" id="paket" name="paket">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary" name="tambah">Simpan</button>
+                    </div>
+                </form>
+            </div>
+            <main>
+                <?= require('layouts/footer.php'); ?>
 </body>
 <html>
