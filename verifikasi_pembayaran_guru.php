@@ -85,7 +85,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt_insert->bind_param("issss", $id_pembayaran, $id_guru, $dateToday, $jumlah_bayar, $bukti_pembayaran);
         if ($stmt_insert->execute()) {
             $id_ref = $conn->insert_id;
-            $keterangan = "Pembayaran Guru";
+            //get pembayaran
+            $query = $conn->prepare("SELECT m.paket FROM pembayaran_guru p LEFT JOIN paket_bimbel m ON m.id_paket=p.id_paket WHERE id_pembayaran = ?");
+            $query->bind_param("i", $id_pembayaran);
+            $query->execute();
+            $query->bind_result($paket);
+            $query->fetch();
+            $query->close();
+
+            //get data master murid
+            $stmt = $conn->prepare("SELECT nama_guru FROM guru WHERE id_guru = ?");
+            $stmt->bind_param("i", $id_guru);
+            $stmt->execute();
+            $stmt->bind_result($nama_guru);
+            $stmt->fetch();
+            $stmt->close();
+
+            $keterangan = "Pembarayan guru ".$nama_guru." (Paket : ". $paket .")";
             $tipe = "Pengeluaran";
             $cashflow = new Cashflow($conn);
             $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran_guru',$id_ref);

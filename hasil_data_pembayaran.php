@@ -173,7 +173,7 @@ $conn->close();
             <table id="viewTable" class="table table-bordered">
                 <thead class="table-success">
                     <tr>
-                        <th>No Registrasi</th>
+                        <th>No Pembayaran</th>
                         <th>Nama</th>
                         <th>Paket</th>
                         <th>Biaya</th>

@@ -101,7 +101,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt_insert->bind_param("issss", $id_pembayaran, $id_murid, $dateToday, $jumlah_bayar, $bukti_pembayaran);
         if ($stmt_insert->execute()) {
             $id_ref = $conn->insert_id;
-            $keterangan = "Pembarayan murid";
+
+            //get data master murid
+            $stmt = $conn->prepare("SELECT nama FROM master_murid WHERE id_murid = ?");
+            $stmt->bind_param("i", $id_murid);
+            $stmt->execute();
+            $stmt->bind_result($nama);
+            $stmt->fetch();
+            $stmt->close();
+
+            $keterangan = "Pembarayan murid ".$nama." (No. Pembayaran : ". $id_pembayaran .")";
             $tipe = "Pemasukan";
             $cashflow = new Cashflow($conn);
             $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran',$id_ref);
