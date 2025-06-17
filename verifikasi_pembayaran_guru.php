@@ -94,19 +94,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $query->fetch();
             $query->close();
 
-            //get data master murid
-            $stmt = $conn->prepare("SELECT nama_guru FROM guru WHERE id_guru = ?");
-            $stmt->bind_param("i", $id_guru);
-            $stmt->execute();
-            $stmt->bind_result($nama_guru);
-            $stmt->fetch();
-            $stmt->close();
 
-            $keterangan = "Pembarayan guru ".$nama_guru." (Paket : ". $paket .")";
-            $tipe = "Pengeluaran";
-            $cashflow = new Cashflow($conn);
-            $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran_guru',$id_ref);
-            $stmt_insert->close();
+            //Ambil user guru
+            $query = "
+                SELECT tu.id_user, g.nama_guru 
+                FROM tm_user tu 
+                JOIN guru g ON tu.id_ref = g.id_guru 
+                WHERE tu.role = 2 AND tu.id_ref = ?
+            ";
+
+            $stmt_user = $conn->prepare($query);
+            $stmt_user->bind_param("i", $id_guru); // gunakan bind_param agar aman
+            $stmt_user->execute();
+            $result_user = $stmt_user->get_result();
+
+            if ($row = $result_user->fetch_assoc()) {
+                $id_penerima = $row['id_user'];
+                $nama_guru = $row['nama_guru'];
+                
+                $keterangan = "Pembarayan guru ".$nama_guru." (Paket : ". $paket .")";
+                $tipe = "Pengeluaran";
+                $cashflow = new Cashflow($conn);
+                $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran_guru',$id_ref);
+                $stmt_insert->close();
+
+                $judul = "Pembayaran Gaji";
+                $keterangan = "Pembayaran kepada guru $nama_guru sebesar Rp " . number_format($jumlah_bayar, 0, ',', '.') . " oleh owner";
+                $url = "bukti_pembayaran_guru.php?id_pembayaran=$id_pembayaran";
+
+
+                $stmt = $conn->prepare("INSERT INTO pusat_notifikasi (tanggal, id_pengirim, id_penerima, judul, keterangan, url, status) VALUES (NOW(), ?, ?, ?, ?, ?, 1)");
+                $stmt->bind_param("iisss", $id_user, $id_penerima, $judul, $keterangan, $url);
+                $stmt->execute();
+            }
 
             echo "<script>alert('Data pembayaran berhasil diperbarui!'); window.location.href='hasil_data_pembayaran_guru.php';</script>";
         } else {

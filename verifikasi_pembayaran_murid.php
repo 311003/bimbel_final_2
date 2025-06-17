@@ -7,6 +7,7 @@ require 'classes/Cashflow.php';
 
 // Ambil id_pembayaran dari URL
 $id_pembayaran = $_GET['id_pembayaran'] ?? '';
+$id_user = $_SESSION['id_user'] ?? '';
 
 // Ambil data pembayaran berdasarkan id_pembayaran
 // $query = "SELECT pembayaran.*, paket_bimbel.paket 
@@ -117,6 +118,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $tipe = "Pemasukan";
             $cashflow = new Cashflow($conn);
             $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran',$id_ref);
+
+            //add notifikasi
+            
+            $judul = "Pembayaran Murid";
+            $keterangan = "$nama membayar sebesar Rp " . number_format($jumlah_bayar, 0, ',', '.');
+            $url = "bukti_pembayaran_owner.php?id_pembayaran=$id_pembayaran";
+
+            $stmt = $conn->prepare("INSERT INTO pusat_notifikasi (tanggal, id_pengirim, id_penerima, judul, keterangan, url, status) VALUES (NOW(), ?, 1, ?, ?, ?, 1)");
+            $stmt->bind_param("isss", $id_user,  $judul, $keterangan, $url);
+            $stmt->execute();
 
             echo "<script>alert('Data pembayaran berhasil diperbarui!'); window.location.href='input_pembayaran_murid.php';</script>";
         } else {

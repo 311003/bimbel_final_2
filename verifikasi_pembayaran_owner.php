@@ -6,6 +6,8 @@ session_start();
 // Ambil id_pembayaran dari URL
 $id_pembayaran = $_GET['id_pembayaran'] ?? '';
 
+$id_user = $_SESSION['id_user'] ?? '';
+
 // Ambil data pembayaran berdasarkan id_pembayaran
 // $query = "SELECT pembayaran.*, paket_bimbel.paket 
 //           FROM pembayaran 
@@ -115,6 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $cashflow = new Cashflow($conn);
             $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran',$id_ref);
             $stmt_insert->close();
+
+            
+
             echo "<script>alert('Data pembayaran berhasil diperbarui!'); window.location.href='hasil_data_pembayaran.php';</script>";
         } else {
             echo "<script>alert('Error memasukkan bukti pembayaran: " . $conn->error . "');</script>";

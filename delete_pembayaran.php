@@ -1,5 +1,6 @@
 <?php
 include 'connection.php'; // Koneksi ke database
+require 'classes/Cashflow.php';
 
 // Cek apakah id_pembayaran tersedia di URL
 if (isset($_GET['id_pembayaran'])) {

@@ -49,7 +49,12 @@ if ($_SESSION['role'] != 1) {
 $result_jadwal = $conn->query($query_jadwal);
 
 // Ambil data murid
-$query_murid = "SELECT id_murid, nama FROM master_murid";
+$query_murid = "SELECT m.id_murid, m.nama
+FROM master_murid m
+WHERE NOT EXISTS (
+  SELECT 1 FROM pembayaran p
+  WHERE p.id_murid = m.id_murid AND p.status_pembayaran = 'Belum Lunas'
+)";
 $result_murid = $conn->query($query_murid);
 
 // Jika form disubmit untuk tambah presensi

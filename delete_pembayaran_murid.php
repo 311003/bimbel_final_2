@@ -1,5 +1,6 @@
 <?php
 include 'connection.php';
+require 'classes/Cashflow.php';
 
 $id_bukti = $_GET['id'] ?? null;
 $id_pembayaran = $_GET['id_pembayaran'] ?? null;
