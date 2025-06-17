@@ -30,9 +30,13 @@ $id_ref = $_SESSION['id_ref'];
 $murid_query = $conn->query("SELECT * FROM master_murid WHERE id_murid = '$id_ref'");
 $murid = $murid_query->fetch_assoc();
 
-$jadwal_query = "SELECT j.id_jadwal, p.paket AS nama_paket, j.tanggal_jadwal, j.jam_masuk, j.jam_keluar 
+$jadwal_query = "SELECT m.nama,j.id_jadwal, p.paket AS nama_paket, j.tanggal_jadwal, j.jam_masuk, j.jam_keluar 
                FROM jadwal j
-               LEFT JOIN paket_bimbel p ON j.id_paket = p.id_paket";
+               LEFT JOIN paket_bimbel p ON j.id_paket = p.id_paket
+               LEFT JOIN detail_presensi dp ON dp.id_jadwal = j.id_jadwal
+               LEFT JOIN master_murid m ON m.id_murid = dp.id_murid
+               WHERE dp.id_murid='$id_ref'
+               ";
 $result = $conn->query($jadwal_query);
 ?>
 

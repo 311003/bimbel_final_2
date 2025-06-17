@@ -4,40 +4,55 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include 'connection.php';
 
-switch($_SESSION['role']){
+// Validasi role
+switch ($_SESSION['role']) {
     case 2:
         require 'middlewares/validasi_guru.php';
-    break;
+        break;
     case 3:
         require 'middlewares/validasi_murid.php';
-    break;
+        break;
 }
 
-// ✅ Query untuk menampilkan data presensi dari tabel presensi dan detail_presensi
+// Ambil ID user dari session
+$id_user = $_SESSION['id_user'];
+
+// Ambil ID guru berdasarkan ID user (pastikan kolom di tabel guru adalah 'id_user')
+$query_ambil_id_guru = "SELECT id_guru FROM guru WHERE id_user = '$id_user'";
+$result_ambil_guru = $conn->query($query_ambil_id_guru);
+if ($result_ambil_guru && $row = $result_ambil_guru->fetch_assoc()) {
+    $_SESSION['id_guru'] = $row['id_guru'];
+    $id_guru = $row['id_guru'];
+} else {
+    die("ID guru tidak ditemukan untuk user ini.");
+}
+
+
+// Query presensi
 $query_presensi = "SELECT 
-            p.id_presensi, 
-            p.id_jadwal, 
-            g.nama_guru,  
-            p.tanggal_presensi, 
-            p.jam_masuk, 
-            p.jam_keluar,
-            k.paket AS paket
-          FROM presensi p
-          LEFT JOIN detail_presensi d ON p.id_presensi = d.id_presensi
-          LEFT JOIN jadwal j ON p.id_jadwal = j.id_jadwal
-          LEFT JOIN guru g ON j.id_guru = g.id_guru
-          LEFT JOIN paket_bimbel k ON p.id_paket = k.id_paket
-          WHERE p.id_presensi
-          GROUP BY p.id_presensi, p.id_jadwal, p.id_guru, p.tanggal_presensi, p.jam_masuk, p.jam_keluar, p.id_paket";
+        p.id_presensi, 
+        p.id_jadwal, 
+        g.nama_guru,  
+        p.tanggal_presensi, 
+        p.jam_masuk, 
+        p.jam_keluar,
+        k.paket AS paket
+    FROM presensi p
+    LEFT JOIN detail_presensi d ON p.id_presensi = d.id_presensi
+    LEFT JOIN jadwal j ON p.id_jadwal = j.id_jadwal
+    LEFT JOIN guru g ON j.id_guru = g.id_guru
+    LEFT JOIN paket_bimbel k ON p.id_paket = k.id_paket
+    WHERE j.id_guru = '$id_guru'
+    GROUP BY p.id_presensi, p.id_jadwal, g.nama_guru, p.tanggal_presensi, p.jam_masuk, p.jam_keluar, k.paket";
 
 $result = $conn->query($query_presensi);
 
-// Cek koneksi dan eksekusi query
+// Cek error query
 if (!$result) {
     die("Error mengambil data: " . $conn->error);
-    echo "<td>" . htmlspecialchars($row['edit_presensi']) . "</td>";
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -82,71 +97,74 @@ if (!$result) {
 </head>
 
 <body>
-    <?= require('layouts/header.php'); ?>
-    <?= require('layouts/sidemenu_guru.php'); ?>
-    <main id="main" class="main">
+<?= require('layouts/header.php'); ?>
+<?= require('layouts/sidemenu_guru.php'); ?>
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Hasil Data Presensi</h1>
+    </div>
 
-        <div class="pagetitle">
-            <h1>Hasil Data Presensi</h1>
-        </div><!-- End Page Title -->
+    <div class="container-fluid">
+        <div class="card shadow mb-4">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID Presensi</th>
+                            <th>Pilih Jadwal</th>
+                            <th>Nama Guru</th>
+                            <th>Tanggal Presensi</th>
+                            <th>Jam Masuk</th>
+                            <th>Jam Keluar</th>
+                            <th>Nama Paket</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                    if ($result->num_rows > 0) {
+                        while ($row = $result->fetch_assoc()) {
+                            echo "<tr>";
+                            echo "<td>" . htmlspecialchars($row['id_presensi'] ?? '-') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['id_jadwal'] ?? '-') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['nama_guru'] ?? '-') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['tanggal_presensi'] ?? '-') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['jam_masuk'] ?? '-') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['jam_keluar'] ?? '-') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['paket'] ?? '-') . "</td>";
+                            echo "<td>
+                                <a href='absensi_guru.php?id_presensi=" . $row['id_presensi'] . "' class='btn btn-sm btn-warning'>Absensi</a>
+                                <a href='view_detail_presensi_guru.php?id_presensi=" . $row['id_presensi'] . "' class='btn btn-sm btn-warning'>Detail</a>
+                            </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td class='text-center'>Data tidak ditemukan</td>
+                        </tr>";
+                    }
+                    ?>
+                    </tbody>
 
-        <!-- Begin Page Content -->
-        <!-- ✅ Tampilan Tabel -->
-        <div class="container-fluid">
-            <div class="card shadow mb-4">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>ID Presensi</th>
-                                <th>Pilih Jadwal</th>
-                                <th>Nama Guru</th>
-                                <th>Tanggal Presensi</th>
-                                <th>Jam Masuk</th>
-                                <th>Jam Keluar</th>
-                                <th>Nama Paket</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            if ($result->num_rows > 0) {
-                                while ($row = $result->fetch_assoc()) {
-                                    echo "<tr>";
-                                    echo "<td>" . htmlspecialchars($row['id_presensi']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['id_jadwal']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['nama_guru']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['tanggal_presensi']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['jam_masuk']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['jam_keluar']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['paket']) . "</td>";
-                                    echo "<td>
-                                        <a href='absensi_guru.php?id_presensi=" . $row['id_presensi'] . "' class='btn btn-sm btn-warning'>Absensi</a>
-                                        <a href='view_detail_presensi_guru.php?id_presensi=" . $row['id_presensi'] . "' class='btn btn-sm btn-warning'>Detail</a>
-                                    </td>";
-                                    echo "</tr>";
-                                }
-                                
-                            } else {
-                                echo "<tr><td colspan='10' class='text-center'>Data tidak ditemukan</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
+                </table>
             </div>
         </div>
-    </main>
-    <?= require('layouts/footer.php'); ?>
-    <script>
-        let table = new DataTable('#dataTable', {
-            // options
-            // lengthMenu: [
-            //     [20, 30, 40, -1],
-            //     [20, 30, 40, 'All']
-            // ]
-        });
-        </script>
-</body>
+    </div>
+</main>
+<?= require('layouts/footer.php'); ?>
 
+<script>
+$(document).ready(function () {
+    $('#dataTable').DataTable();
+});
+</script>
+
+</body>
 </html>

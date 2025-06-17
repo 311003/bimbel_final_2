@@ -24,5 +24,13 @@
                 <span>Hasil Data Presensi</span>
             </a>
         </li>
+        
+        <!-- Laporan -->
+        <li class="nav-item">
+            <a class="nav-link" href="rekap_murid.php">
+                <i class="bi bi-clipboard-data"></i>
+                <span>Laporan</span>
+            </a>
+        </li>
     </ul>
 </aside><!-- End Sidebar -->

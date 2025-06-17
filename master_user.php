@@ -148,7 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="alert alert-info"><?= $message ?></div>
                     <?php endif; ?>
 
-                    <form method="POST" action="master_user.php">
+                    <form method="POST" action="proses_tambah_user.php">
                         <div class="mb-3">
                             <label>Username</label>
                             <input type="text" name="username" class="form-control" required>

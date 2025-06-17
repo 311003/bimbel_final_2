@@ -5,6 +5,7 @@ session_start();
 
 // Ambil id_pembayaran dari URL
 $id_pembayaran = $_GET['id_pembayaran'] ?? '';
+$id_user = $_SESSION['id_user'] ?? '';
 
 // Ambil data pembayaran berdasarkan id_pembayara
 $query = "SELECT 

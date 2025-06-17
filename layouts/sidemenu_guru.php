@@ -44,5 +44,12 @@
         </li>
       </ul>
     </li><!-- End Presensi -->
+    <!-- Laporan -->
+    <li class="nav-item">
+        <a class="nav-link" href="rekap_gaji.php">
+            <i class="bi bi-clipboard-data"></i>
+            <span>Laporan</span>
+        </a>
+    </li>
 
 </aside><!-- End Sidebar -->

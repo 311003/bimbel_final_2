@@ -30,9 +30,11 @@ if ($result_count_status) {
 }
 
 // Ambil data jadwal
-$query = "SELECT r.id_jadwal, p.paket AS nama_paket, r.tanggal_jadwal, r.jam_masuk, r.jam_keluar
+$query = "SELECT g.nama_guru,r.id_jadwal, p.paket AS nama_paket, r.tanggal_jadwal, r.jam_masuk, r.jam_keluar
           FROM jadwal r
-          LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket";
+          LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket
+          LEFT JOIN guru g ON g.id_guru = r.id_guru
+          ";
 $result = $conn->query($query);
 ?>
 
@@ -92,6 +94,7 @@ $result = $conn->query($query);
             <thead class="table-light">
               <tr>
                 <th>ID Jadwal</th>
+                <th>Nama Guru</th>
                 <th>Nama Paket</th>
                 <th>Tanggal Jadwal</th>
                 <th>Jam Masuk</th>
@@ -103,6 +106,7 @@ $result = $conn->query($query);
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
                     <td><?php echo htmlspecialchars($row['id_jadwal']); ?></td>
+                    <td><?php echo htmlspecialchars($row['nama_guru']); ?></td>
                     <td><?php echo htmlspecialchars($row['nama_paket']); ?></td>
                     <td><?php echo htmlspecialchars($row['tanggal_jadwal']); ?></td>
                     <td><?php echo htmlspecialchars($row['jam_masuk']); ?></td>

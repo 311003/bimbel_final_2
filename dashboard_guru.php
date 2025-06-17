@@ -41,7 +41,8 @@ $guru = $guru_query->fetch_assoc();
 
 $jadwal_query = "SELECT j.id_jadwal, p.paket AS nama_paket, j.tanggal_jadwal, j.jam_masuk, j.jam_keluar 
                  FROM jadwal j
-                 LEFT JOIN paket_bimbel p ON j.id_paket = p.id_paket";
+                 LEFT JOIN paket_bimbel p ON j.id_paket = p.id_paket
+                 WHERE id_guru ='$id_ref'";
 $result = $conn->query($jadwal_query);
 ?>
 
