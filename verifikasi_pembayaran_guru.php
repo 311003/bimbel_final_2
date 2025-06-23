@@ -74,9 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Update data pembayaran dengan bukti pembayaran
     // Update pembayaran table
-    $query_update = "UPDATE pembayaran_guru SET jumlah_bayar = ?, sisa_bayar = ?, status_pembayaran = ?, input_pembayaran = ?, tanggal_bayar = ? WHERE id_pembayaran = ?";
+    $query_update = "UPDATE pembayaran_guru SET jumlah_bayar = ?, sisa_bayar = ?, status_pembayaran = ?, input_pembayaran = ? WHERE id_pembayaran = ?";
     $stmt_update = $conn->prepare($query_update);
-    $stmt_update->bind_param("dsssss", $jumlah_bayar_total, $sisa_bayar, $status_pembayaran, $jumlah_bayar ,  $tanggal_bayar, $id_pembayaran);
+    $stmt_update->bind_param("dssss", $jumlah_bayar_total, $sisa_bayar, $status_pembayaran, $jumlah_bayar , $id_pembayaran);
     if ($stmt_update->execute()) {
 
         // If update was successful, insert the bukti pembayaran

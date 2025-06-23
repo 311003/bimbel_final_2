@@ -48,14 +48,29 @@ if ($_SESSION['role'] != 1) {
 }
 $result_jadwal = $conn->query($query_jadwal);
 
-// Ambil data murid
-$query_murid = "SELECT m.id_murid, m.nama
-FROM master_murid m
-WHERE NOT EXISTS (
-  SELECT 1 FROM pembayaran p
-  WHERE p.id_murid = m.id_murid AND p.status_pembayaran = 'Belum Lunas'
-)";
-$result_murid = $conn->query($query_murid);
+$murid_by_paket = [];
+
+$query_murid_all = "
+SELECT DISTINCT r.id_paket, m.id_murid, m.nama
+FROM registrasi_valid r
+JOIN master_murid m ON m.id_murid = r.id_murid
+JOIN (
+    SELECT id_murid
+    FROM pembayaran
+    GROUP BY id_murid
+    HAVING SUM(CASE WHEN status_pembayaran != 'Lunas' THEN 1 ELSE 0 END) = 0
+) AS p_lunas ON p_lunas.id_murid = r.id_murid
+WHERE r.konfirmasi_registrasi = 'Divalidasi' AND r.id_paket IS NOT NULL
+";
+
+$res_murid = $conn->query($query_murid_all);
+while ($row = $res_murid->fetch_assoc()) {
+    $murid_by_paket[$row['id_paket']][] = [
+        'id_murid' => $row['id_murid'],
+        'nama' => $row['nama']
+    ];
+}
+
 
 // Jika form disubmit untuk tambah presensi
 if (isset($_POST['tambah_presensi'])) {
@@ -109,7 +124,7 @@ if (isset($_POST['tambah_presensi'])) {
             $stmt_detail->execute();
         }
         $stmt_detail->close();
-    
+
         //Insert Pembaaran Guru
         $guru = $conn->prepare("SELECT * FROM guru WHERE id_guru= ? ");
         $guru->bind_param("i", $id_guru);
@@ -117,15 +132,15 @@ if (isset($_POST['tambah_presensi'])) {
         $guru_result = $guru->get_result();
         $guru = $guru_result->fetch_assoc();
 
-        $status_bayar='Belum Lunas';
-        $nama=$guru['nama_guru'];
-        $gaji=$guru['gaji'];
-        $sisa_bayar=$guru['gaji'];
+        $status_bayar = 'Belum Lunas';
+        $nama = $guru['nama_guru'];
+        $gaji = $guru['gaji'];
+        $sisa_bayar = $guru['gaji'];
 
         $query_detail = "INSERT INTO pembayaran_guru (id_presensi, id_guru,id_jadwal,  id_paket,  nama, gaji,sisa_bayar,status_pembayaran,tanggal_bayar) 
                 VALUES (?, ?, ?, ?,?,?,?,?,?)";
         $stmt_detail = $conn->prepare($query_detail);
-        $stmt_detail->bind_param("iiissssss", $id_presensi, $id_guru, $id_jadwal, $id_paket, $nama,$gaji,$sisa_bayar,$status_bayar,$tanggal_presensi);
+        $stmt_detail->bind_param("iiissssss", $id_presensi, $id_guru, $id_jadwal, $id_paket, $nama, $gaji, $sisa_bayar, $status_bayar, $tanggal_presensi);
         $stmt_detail->execute();
         $stmt_detail->close();
 
@@ -183,184 +198,199 @@ if (isset($_POST['tambah_presensi'])) {
 <body>
     <?= require('layouts/header.php'); ?>
     <?= require('layouts/sidemenu_guru.php'); ?>
-</body>
+    <main id="main" class="main">
 
-<main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Tambah Data Presensi</h1>
+        </div><!-- End Page Title -->
 
-    <div class="pagetitle">
-        <h1>Tambah Data Presensi</h1>
-    </div><!-- End Page Title -->
+        <div class="card p-5 mb-5">
+            <form method="POST" action="input_presensi_guru.php">
 
-    <div class="card p-5 mb-5">
-        <form method="POST" action="input_presensi_guru.php">
+                <!-- ID Presensi -->
+                <div class="form-group mb-3">
+                    <label for="id_presensi">ID Presensi</label>
+                    <input type="text" class="form-control" id="id_presensi" name="id_presensi" value="<?= htmlspecialchars($newId) ?>" readonly>
+                </div>
 
-            <!-- ID Presensi -->
-            <div class="form-group mb-3">
-                <label for="id_presensi">ID Presensi</label>
-                <input type="text" class="form-control" id="id_presensi" name="id_presensi" value="<?= htmlspecialchars($newId) ?>" readonly>
-            </div>
-
-            <!-- Pilih Jadwal -->
-            <div class="mb-3">
-                <label for="id_jadwal" class="form-label">Pilih Jadwal</label>
-                <select class="form-control" id="id_jadwal" name="id_jadwal" required onchange="autofillData()">
-                    <option value="">-- Pilih Jadwal --</option>
-                    <?php while ($row = $result_jadwal->fetch_assoc()): ?>
-                        <option
-                            value="<?= htmlspecialchars($row['id_jadwal']) ?>"
-                            data-id_guru="<?= htmlspecialchars($row['id_guru']) ?>"
-                            data-id_paket="<?= htmlspecialchars($row['id_paket']) ?>"
-                            data-tanggal="<?= htmlspecialchars($row['tanggal_jadwal']) ?>"
-                            data-jam_masuk="<?= htmlspecialchars($row['jam_masuk']) ?>"
-                            data-jam_keluar="<?= htmlspecialchars($row['jam_keluar']) ?>">
-                            <?= htmlspecialchars($row['id_jadwal']) ?> - <?= htmlspecialchars($row['nama_guru']) ?> (<?= htmlspecialchars($row['nama_paket']) ?>)
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
-
-            <!-- ID Guru -->
-            <div class="form-group mb-3">
-                <label for="id_guru">ID Guru</label>
-                <input type="text" class="form-control" id="id_guru" name="id_guru" readonly>
-            </div>
-
-            <!-- ID Paket -->
-            <div class="form-group mb-3">
-                <label for="id_paket">ID Paket</label>
-                <input type="text" class="form-control" id="id_paket" name="id_paket" readonly>
-            </div>
-
-            <!-- Pilih ID Murid -->
-            <div class="form-group mb-3" id="murid-container">
-                <label for="id_murid">Pilih ID Murid</label>
-                <div class="murid-entry mb-2 d-flex align-items-center">
-                    <select class="form-control me-2" name="id_murid[]" required onchange="autofillNamaMurid(this)">
-                        <option value="">-- Pilih ID Murid --</option>
-                        <?php while ($row = $result_murid->fetch_assoc()): ?>
-                            <option value="<?= htmlspecialchars($row['id_murid']) ?>" data-nama="<?= htmlspecialchars($row['nama']) ?>">
-                                <?= htmlspecialchars($row['id_murid']) ?> - <?= htmlspecialchars($row['nama']) ?>
+                <!-- Pilih Jadwal -->
+                <div class="mb-3">
+                    <label for="id_jadwal" class="form-label">Pilih Jadwal</label>
+                    <select class="form-control" id="id_jadwal" name="id_jadwal" required onchange="autofillData()">
+                        <option value="">-- Pilih Jadwal --</option>
+                        <?php while ($row = $result_jadwal->fetch_assoc()): ?>
+                            <option
+                                value="<?= htmlspecialchars($row['id_jadwal']) ?>"
+                                data-id_guru="<?= htmlspecialchars($row['id_guru']) ?>"
+                                data-id_paket="<?= htmlspecialchars($row['id_paket']) ?>"
+                                data-tanggal="<?= htmlspecialchars($row['tanggal_jadwal']) ?>"
+                                data-jam_masuk="<?= htmlspecialchars($row['jam_masuk']) ?>"
+                                data-jam_keluar="<?= htmlspecialchars($row['jam_keluar']) ?>">
+                                <?= htmlspecialchars($row['id_jadwal']) ?> - <?= htmlspecialchars($row['nama_guru']) ?> (<?= htmlspecialchars($row['nama_paket']) ?>)
                             </option>
                         <?php endwhile; ?>
                     </select>
+                </div>
+
+                <!-- ID Guru -->
+                <div class="form-group mb-3">
+                    <label for="id_guru">ID Guru</label>
+                    <input type="text" class="form-control" id="id_guru" name="id_guru" readonly>
+                </div>
+
+                <!-- ID Paket -->
+                <div class="form-group mb-3">
+                    <label for="id_paket">ID Paket</label>
+                    <input type="text" class="form-control" id="id_paket" name="id_paket" readonly>
+                </div>
+
+                <!-- Pilih ID Murid -->
+                <div class="form-group mb-3" id="murid-container">
+                    <label for="id_murid">Pilih ID Murid</label>
+                    <!-- Default satu dropdown murid -->
+                    <div class="murid-entry mb-2 d-flex align-items-center">
+                        <select class="form-control me-2" name="id_murid[]" required onchange="autofillNamaMurid(this)">
+                            <option value="">-- Pilih ID Murid --</option>
+                        </select>
+                        <input type="text" class="form-control me-2" name="nama_murid[]" placeholder="Nama Murid" readonly>
+                        <button type="button" class="btn btn-danger" onclick="removeMurid(this)">Hapus</button>
+                    </div>
+                </div>
+
+                <!-- Tombol Tambah Murid -->
+                <div class="d-grid gap-2 mb-3">
+                    <button type="button" class="btn btn-success" onclick="addMurid()">Tambah Murid</button>
+                </div>
+
+                <!-- Tanggal Presensi -->
+                <div class="mb-3">
+                    <label for="tanggal_presensi" class="form-label">Tanggal Presensi</label>
+                    <input type="date" class="form-control" id="tanggal_presensi" name="tanggal_presensi" readonly>
+                </div>
+
+                <!-- Jam Masuk -->
+                <div class="mb-3">
+                    <label for="jam_masuk" class="form-label">Jam Masuk</label>
+                    <input type="time" class="form-control" id="jam_masuk" name="jam_masuk" readonly>
+                </div>
+
+                <!-- Jam Keluar -->
+                <div class="mb-3">
+                    <label for="jam_keluar" class="form-label">Jam Keluar</label>
+                    <input type="time" class="form-control" id="jam_keluar" name="jam_keluar" readonly>
+                </div>
+
+                <!-- Tombol Submit -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary" name="tambah_presensi">Simpan Presensi</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bootstrap JS -->
+
+        <!-- JavaScript -->
+        <script>
+            const muridData = <?= json_encode($murid_by_paket) ?>;
+
+
+            function autofillData() {
+                // Ambil elemen dropdown dan input field
+                let jadwalSelect = document.getElementById("id_jadwal");
+                let selectedOption = jadwalSelect.options[jadwalSelect.selectedIndex];
+
+                // Ambil data dari atribut yang sudah diset sebelumnya
+                let idGuru = selectedOption.getAttribute("data-id_guru");
+                let idPaket = selectedOption.getAttribute("data-id_paket");
+                let tanggalPresensi= selectedOption.getAttribute("data-tanggal");
+                let jamMasuk = selectedOption.getAttribute("data-jam_masuk");
+                let jamKeluar = selectedOption.getAttribute("data-jam_keluar");
+
+                // Isi input field secara otomatis
+                document.getElementById("id_guru").value = idGuru ? idGuru : '';
+                document.getElementById("id_paket").value = idPaket ? idPaket : '';
+                document.getElementById("tanggal_presensi").value = tanggalPresensi ? tanggalPresensi : '';
+                document.getElementById("jam_masuk").value = jamMasuk ? jamMasuk : '';
+                document.getElementById("jam_keluar").value = jamKeluar ? jamKeluar : '';
+
+                updateMuridList(idPaket);
+            }
+
+
+            function updateMuridList(idPaket) {
+                const container = document.getElementById("murid-container");
+
+                // Kosongkan container murid
+                container.innerHTML = '';
+
+                if (!muridData[idPaket] || muridData[idPaket].length === 0) {
+                    container.innerHTML = "<div class='text-danger'>Tidak ada murid untuk paket ini.</div>";
+                    return;
+                }
+
+                // Tambahkan satu entry murid secara default
+                const murid = muridData[idPaket][0];
+                const div = document.createElement("div");
+                div.classList.add("murid-entry", "mb-2", "d-flex", "align-items-center");
+                div.innerHTML = `
+                    <select class="form-control me-2" name="id_murid[]" required onchange="autofillNamaMurid(this)">
+                        <option value="">-- Pilih ID Murid --</option>
+                        ${muridData[idPaket].map(m => `<option value="${m.id_murid}" data-nama="${m.nama}">${m.id_murid} - ${m.nama}</option>`).join('')}
+                    </select>
                     <input type="text" class="form-control me-2" name="nama_murid[]" placeholder="Nama Murid" readonly>
                     <button type="button" class="btn btn-danger" onclick="removeMurid(this)">Hapus</button>
-                </div>
-            </div>
+                `;
+                container.appendChild(div);
+            }
 
-            <!-- Tombol Tambah Murid -->
-            <div class="d-grid gap-2 mb-3">
-                <button type="button" class="btn btn-success" onclick="addMurid()">Tambah Murid</button>
-            </div>
+            function autofillNamaMurid(selectElement) {
+                let selectedOption = selectElement.options[selectElement.selectedIndex];
+                let namaMurid = selectedOption.getAttribute("data-nama") || '';
+                let namaInput = selectElement.parentElement.querySelector('input[name="nama_murid[]"]');
+                namaInput.value = namaMurid;
+            }
 
-            <!-- Tanggal Presensi -->
-            <div class="mb-3">
-                <label for="tanggal_presensi" class="form-label">Tanggal Presensi</label>
-                <input type="date" class="form-control" id="tanggal_presensi" name="tanggal_presensi" readonly>
-            </div>
+            function addMurid() {
+                let idPaket = document.getElementById("id_paket").value;
+                if (!idPaket || !muridData[idPaket]) {
+                    alert("Silakan pilih jadwal terlebih dahulu.");
+                    return;
+                }
 
-            <!-- Jam Masuk -->
-            <div class="mb-3">
-                <label for="jam_masuk" class="form-label">Jam Masuk</label>
-                <input type="time" class="form-control" id="jam_masuk" name="jam_masuk" readonly>
-            </div>
+                const container = document.getElementById("murid-container");
+                const div = document.createElement("div");
+                div.classList.add("murid-entry", "mb-2", "d-flex", "align-items-center");
 
-            <!-- Jam Keluar -->
-            <div class="mb-3">
-                <label for="jam_keluar" class="form-label">Jam Keluar</label>
-                <input type="time" class="form-control" id="jam_keluar" name="jam_keluar" readonly>
-            </div>
+                div.innerHTML = `
+                    <select class="form-control me-2" name="id_murid[]" required onchange="autofillNamaMurid(this)">
+                        <option value="">-- Pilih ID Murid --</option>
+                        ${muridData[idPaket].map(m => `<option value="${m.id_murid}" data-nama="${m.nama}">${m.id_murid} - ${m.nama}</option>`).join('')}
+                    </select>
+                    <input type="text" class="form-control me-2" name="nama_murid[]" placeholder="Nama Murid" readonly>
+                    <button type="button" class="btn btn-danger" onclick="removeMurid(this)">Hapus</button>
+                `;
+                container.appendChild(div);
+            }
 
-            <!-- Tombol Submit -->
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary" name="tambah_presensi">Simpan Presensi</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    </body>
-
-    <!-- Bootstrap JS -->
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    </body>
-
-</html>
-
-</html>
+            function removeMurid(button) {
+                let container = document.getElementById("murid-container");
+                let entries = container.querySelectorAll(".murid-entry");
+                if (entries.length > 1) {
+                    button.parentElement.remove();
+                } else {
+                    alert("Minimal satu murid harus dipilih.");
+                }
+            }
 
 
-<!-- JavaScript -->
-<script>
-    function autofillData() {
-        // Ambil elemen dropdown dan input field
-        let jadwalSelect = document.getElementById("id_jadwal");
-        let selectedOption = jadwalSelect.options[jadwalSelect.selectedIndex];
+            // const today = new Date().toISOString().split('T')[0];
+            // document.getElementById("tanggal_jadwal").setAttribute("min", today);
+        </script>
 
-        // Ambil data dari atribut yang sudah diset sebelumnya
-        let idGuru = selectedOption.getAttribute("data-id_guru");
-        let idPaket = selectedOption.getAttribute("data-id_paket");
-        let tanggalPresensi = selectedOption.getAttribute("data-tanggal");
-        let jamMasuk = selectedOption.getAttribute("data-jam_masuk");
-        let jamKeluar = selectedOption.getAttribute("data-jam_keluar");
+    </main>
 
-        // Isi input field secara otomatis
-        document.getElementById("id_guru").value = idGuru ? idGuru : '';
-        document.getElementById("id_paket").value = idPaket ? idPaket : '';
-        document.getElementById("tanggal_presensi").value = tanggalPresensi ? tanggalPresensi : '';
-        document.getElementById("jam_masuk").value = jamMasuk ? jamMasuk : '';
-        document.getElementById("jam_keluar").value = jamKeluar ? jamKeluar : '';
-    }
+    <?= require('layouts/footer.php'); ?>
 
-
-    function autofillNamaMurid(selectElement) {
-        let selectedOption = selectElement.options[selectElement.selectedIndex];
-        let namaMurid = selectedOption.getAttribute("data-nama");
-
-        // Ambil input nama murid yang berada di sebelah select dropdown
-        let namaInput = selectElement.parentElement.querySelector('input[name="nama_murid[]"]');
-        namaInput.value = namaMurid ? namaMurid : '';
-    }
-
-    // Fungsi untuk menambahkan dropdown murid baru
-    function addMurid() {
-        let container = document.getElementById("murid-container");
-        let muridEntries = container.querySelectorAll(".murid-entry");
-        let lastMurid = muridEntries[muridEntries.length - 1];
-        let newMurid = lastMurid.cloneNode(true);
-
-        // Reset nilai dropdown dan input
-        let select = newMurid.querySelector('select');
-        let input = newMurid.querySelector('input[name="nama_murid[]"]');
-        select.value = "";
-        input.value = "";
-
-        container.appendChild(newMurid);
-    }
-
-    // Fungsi untuk menghapus dropdown murid
-    function removeMurid(button) {
-        let container = document.getElementById("murid-container");
-        let muridEntries = container.querySelectorAll(".murid-entry");
-
-        // Hapus hanya jika lebih dari 1 input yang tersedia
-        if (muridEntries.length > 1) {
-            button.parentElement.remove();
-        } else {
-            alert("Minimal harus ada satu murid yang dipilih.");
-        }
-    }
-
-    console.log("Tanggal:", tanggalPresensi, "Jam Masuk:", jamMasuk, "Jam Keluar:", jamKeluar);
-
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("tanggal_jadwal").setAttribute("min", today);
-</script>
-
-</main>
-<?= require('layouts/footer.php'); ?>
 </body>
 
 </html>

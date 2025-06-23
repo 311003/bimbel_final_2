@@ -124,7 +124,7 @@ $result_guru = $conn->query($query_guru);
                 </div>
 
                 <div class="mb-3">
-                    <label for="tahun" class="form-label">Bulan</label>
+                    <label for="tahun" class="form-label">Tahun</label>
                     <input class="form-control" type="number" name="tahun" value="<?= $tahun ?>" />
                 </div>
                 <?php

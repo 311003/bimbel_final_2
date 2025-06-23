@@ -97,7 +97,8 @@ LEFT JOIN bukti_pembayaran b ON b.id_pembayaran = r.id_pembayaran
 LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket
 LEFT JOIN master_murid m ON r.id_murid = m.id_murid
 LEFT JOIN registrasi_murid reg ON r.id_murid = reg.no_reg
-WHERE reg.konfirmasi_registrasi = 'Divalidasi' AND m.status_murid =1
+WHERE reg.konfirmasi_registrasi = 'Divalidasi'
+ AND m.status_murid =1
 GROUP BY 
     r.id_pembayaran,
     r.id_paket,
@@ -126,7 +127,7 @@ $conn->close();
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Hasil Data Pembayaran</title>
+    <title>Hasil Data Pembayaran Murid</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -167,7 +168,7 @@ $conn->close();
 
     <main id="main" class="main">
         <div class="container mt-4">
-            <h2 class="text-center">Hasil Data Pembayaran</h2>
+            <h2 class="text-center">Hasil Data Pembayaran Murid</h2>
 
             <h4 class="mt-4 text-success">✅ Murid yang Divalidasi</h4>
             <table id="viewTable" class="table table-bordered">

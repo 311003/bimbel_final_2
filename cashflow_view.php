@@ -77,7 +77,7 @@ $result = $query->get_result();
                 </div>
 
                 <div class="mb-3">
-                    <label for="tahun" class="form-label">Bulan</label>
+                    <label for="tahun" class="form-label">Tahun</label>
                     <input class="form-control" type="number" name="tahun" value="<?= $tahun ?>" />
                 </div>
 
@@ -123,6 +123,13 @@ $result = $query->get_result();
 
     </div>
     <script>
+        let table = new DataTable('#dataTable', {
+            // options
+            // lengthMenu: [
+            //     [20, 30, 40, -1],
+            //     [20, 30, 40, 'All']
+            // ]
+        });
         document.getElementById('exportExcel').addEventListener('click', function () {
             const bulan = document.querySelector('select[name="bulan"]').value;
             const tahun = document.querySelector('input[name="tahun"]').value;
