@@ -50,10 +50,11 @@ if (isset($_POST['tambah'])) {
 
     // Jika murid baru, masukkan ke master_murid terlebih dahulu
     if ($murid_baru === "baru") {
-        $query_insert_murid = "INSERT INTO master_murid (id_murid, nama, tanggal_lahir, alamat, kelas, asal_sekolah, jenis_kelamin, no_telp)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $query_insert_murid = "INSERT INTO master_murid (id_murid, nama, tanggal_lahir, alamat, kelas, asal_sekolah, jenis_kelamin, no_telp, id_status_murid)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, '1')";
         $stmt_murid = $conn->prepare($query_insert_murid);
         $stmt_murid->bind_param("ssssssss", $id_murid, $nama, $tanggal_lahir, $alamat, $kelas, $asal_sekolah, $jenis_kelamin, $no_telp);
+
 
         if (!$stmt_murid->execute()) {
             die("Error menyimpan murid baru: " . $stmt_murid->error);

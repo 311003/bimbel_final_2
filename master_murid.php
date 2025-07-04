@@ -17,17 +17,19 @@ $filter_status = $_GET['filter_status'] ?? '';
 // Query to fetch data including status murid
 $query = "
     SELECT 
-        mm.id_murid, 
-        mm.nama, 
-        mm.tanggal_lahir, 
-        mm.alamat, 
-        mm.no_telp, 
-        mm.kelas, 
-        mm.asal_sekolah, 
-        sm.status_murid AS status_murid
-    FROM master_murid mm
-    LEFT JOIN status_murid sm ON mm.status_murid = sm.id_status_murid
-    WHERE mm.id_murid NOT IN (SELECT id_murid FROM registrasi_batal)";
+    mm.id_murid, 
+    mm.nama, 
+    mm.tanggal_lahir, 
+    mm.alamat, 
+    mm.no_telp, 
+    mm.kelas, 
+    mm.asal_sekolah, 
+    mm.id_status_murid,
+    sm.status_murid
+FROM master_murid mm
+LEFT JOIN status_murid sm ON mm.id_status_murid = sm.id_status_murid
+WHERE mm.id_murid NOT IN (SELECT id_murid FROM registrasi_batal)";
+
 
 if (!empty($filter_status)) {
     $query .= " AND sm.id_status_murid = '$filter_status'";
@@ -130,12 +132,12 @@ $result = $conn->query($query);
                             echo "<td>" . htmlspecialchars($row['asal_sekolah']) . "</td>";
                             echo "<td>
                             <form method='POST' action='update_status_murid.php'>
-                                <select name='status_murid' onchange='this.form.submit()'>
-                                    <option value='Aktif'" . ($row['status_murid'] == 'Aktif' ? ' selected' : '') . ">Aktif</option>
-                                    <option value='Tidak Aktif'" . ($row['status_murid'] == 'Tidak Aktif' ? ' selected' : '') . ">Tidak Aktif</option>
-                                </select>
-                                <input type='hidden' name='id_murid' value='" . $row['id_murid'] . "' />
-                            </form>
+    <select name='id_status_murid' onchange='this.form.submit()'>
+        <option value='1' " . ($row['id_status_murid'] == 1 ? 'selected' : '') . ">Aktif</option>
+        <option value='2' " . ($row['id_status_murid'] == 2 ? 'selected' : '') . ">Tidak Aktif</option>
+    </select>
+    <input type='hidden' name='id_murid' value='" . htmlspecialchars($row['id_murid']) . "' />
+</form>
                         </td>";
                             echo "<td>
                                 <a href='edit_murid.php?id_murid=" . $row['id_murid'] . "' class='btn btn-sm btn-warning'>Edit</a>

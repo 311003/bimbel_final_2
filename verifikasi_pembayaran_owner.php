@@ -97,10 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt_update->execute()) {
 
         // If update was successful, insert the bukti pembayaran
-        $query_insert = "INSERT INTO bukti_pembayaran (id_pembayaran, id_murid, tanggal_bayar, jumlah_bayar, bukti_pembayaran) VALUES (?, ?, ?, ?, ?)";
+        $query_insert = "INSERT INTO bukti_pembayaran 
+        (id_pembayaran, id_murid, tanggal_bayar, bukti_pembayaran, jumlah_bayar) 
+        VALUES (?, ?, ?, ?, ?)";
+
         $stmt_insert = $conn->prepare($query_insert);
-        $dateToday = date('Y-m-d h:i:s');
-        $stmt_insert->bind_param("issss", $id_pembayaran, $id_murid, $dateToday, $jumlah_bayar, $bukti_pembayaran);
+        $dateToday = date('Y-m-d H:i:s'); // gunakan format 24 jam
+
+        $stmt_insert->bind_param("ssssd", $id_pembayaran, $id_murid, $dateToday, $bukti_pembayaran, $jumlah_bayar);
+
         if ($stmt_insert->execute()) {
             $id_ref = $conn->insert_id;
 
@@ -117,8 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $cashflow = new Cashflow($conn);
             $cashflow->add($tipe,$dateToday,$keterangan,$jumlah_bayar,'bukti_pembayaran',$id_ref);
             $stmt_insert->close();
-
-            
 
             echo "<script>alert('Data pembayaran berhasil diperbarui!'); window.location.href='hasil_data_pembayaran.php';</script>";
         } else {
@@ -194,8 +197,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <!-- ID Murid -->
             <div class="form-group mb-3">
                 <label for="id_murid">ID Murid</label>
-                <input type="text" class="form-control" id="id_murid" name="id_murid" 
+                <input type="text" class="form-control" id="id_murid_view" name="id_murid_view" 
                       value="<?= htmlspecialchars($data_pembayaran['id_murid']) ?> - <?= htmlspecialchars($data_pembayaran['nama']) ?>" 
+                      readonly>
+                <input type="hidden" class="form-control" id="id_murid" name="id_murid" 
+                      value="<?= htmlspecialchars($data_pembayaran['id_murid']) ?>" 
                       readonly>
             </div>
 

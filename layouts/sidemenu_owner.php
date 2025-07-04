@@ -70,7 +70,7 @@
       <ul id="laporannav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li><a href="cashflow_view.php"><i class="bi bi-circle"></i><span>Cashflow</span></a></li>
         <li><a href="rekap_gaji.php"><i class="bi bi-circle"></i><span>Gaji Guru</span></a></li>
-        <li><a href="rekap_murid.php"><i class="bi bi-circle"></i><span>Murid</span></a></li>
+        <li><a href="rekap_murid.php"><i class="bi bi-circle"></i><span>Pembayaran Murid</span></a></li>
       </ul>
     </li>
 

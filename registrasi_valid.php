@@ -1,12 +1,11 @@
 <?php
-include 'connection.php'; // Pastikan file koneksi database sudah di-include
+include 'connection.php';
 session_start();
-// echo "ROLE: " . ($_SESSION['role'] ?? 'NOT SET'); // Debug sementara
 
 if (isset($_GET['no_reg'])) {
     $no_reg = $_GET['no_reg'];
 
-    // Ambil data murid yang perlu divalidasi
+    // Ambil data murid
     $query_select = "SELECT r.id_murid, r.nama, r.id_paket, p.biaya, p.paket 
                      FROM registrasi_murid r
                      LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket
@@ -18,93 +17,75 @@ if (isset($_GET['no_reg'])) {
     $stmt_select->fetch();
     $stmt_select->close();
 
-    // Pastikan data valid
     if (empty($id_murid) || empty($id_paket) || empty($biaya)) {
         echo "<script>alert('Data tidak lengkap!'); window.history.back();</script>";
         exit();
     }
 
-    // Update konfirmasi_registrasi menjadi "Divalidasi"
+    // ✅ Cek apakah sudah pernah divalidasi
+    $cek = $conn->prepare("SELECT no_reg FROM pembayaran WHERE no_reg = ?");
+    $cek->bind_param("s", $no_reg);
+    $cek->execute();
+    $cek->store_result();
+
+    if ($cek->num_rows > 0) {
+        // Jika sudah pernah divalidasi
+        echo "<script>alert('Murid ini sudah pernah divalidasi sebelumnya!'); window.location.href='view_konfirmasi_registrasi.php';</script>";
+        exit();
+    }
+    $cek->close();
+
+    // Update status konfirmasi
     $query_update = "UPDATE registrasi_murid SET konfirmasi_registrasi = 'Divalidasi' WHERE no_reg = ?";
     $stmt_update = $conn->prepare($query_update);
     $stmt_update->bind_param("s", $no_reg);
-
-    if (!$stmt_update->execute()) {
-        echo "<script>alert('Terjadi kesalahan saat memvalidasi!'); window.history.back();</script>";
-        exit();
-    }
-
+    $stmt_update->execute();
     $stmt_update->close();
 
-    // Insert ke tabel pembayaran
-    $query_insert = "INSERT INTO pembayaran (no_reg, id_murid, nama, id_paket, paket, biaya, jumlah_bayar, sisa_biaya, status_pembayaran, input_pembayaran, tanggal_bayar)
-                 VALUES (?, ?, ?, ?, ?, ?, 0, ?, 'Belum Lunas', NOW(), NOW())";
+    // Simpan data ke tabel pembayaran
+    $sisa_biaya = $biaya; // karena jumlah_bayar = 0
+    $query_insert = "INSERT INTO pembayaran 
+    (no_reg, id_murid, nama, id_paket, paket, biaya, jumlah_bayar, sisa_biaya, status_pembayaran, input_pembayaran, tanggal_bayar)
+    VALUES (?, ?, ?, ?, ?, ?, 0, ?, 'Belum Lunas', NOW(), NOW())";
+
     $stmt_insert = $conn->prepare($query_insert);
-    $stmt_insert->bind_param("ssssssd", $no_reg, $id_murid, $nama, $id_paket, $paket, $biaya, $biaya);
+    $stmt_insert->bind_param("ssssssd", $no_reg, $id_murid, $nama, $id_paket, $paket, $biaya, $sisa_biaya);
 
     if (!$stmt_insert->execute()) {
         echo "<script>alert('Error menambahkan pembayaran: " . $stmt_insert->error . "'); window.history.back();</script>";
         exit();
     }
-
     $stmt_insert->close();
 
-    // Pastikan data yang diterima aman
+    // Perbarui id_paket ke tabel lain jika ada POST (opsional)
     if (isset($_POST['id_murid']) && isset($_POST['id_paket'])) {
-        $id_murid = $_POST['id_murid'];
-        $id_paket = $_POST['id_paket'];
+        $id_murid_post = $_POST['id_murid'];
+        $id_paket_post = $_POST['id_paket'];
 
-        // Debugging: Output the received values
-        echo "ID Murid: " . $id_murid . "<br>";
-        echo "ID Paket: " . $id_paket . "<br>";
-
-        // Mulai transaksi
         $conn->begin_transaction();
-
         try {
+            $stmt_update1 = $conn->prepare("UPDATE registrasi_valid SET id_paket = ? WHERE id_murid = ?");
+            $stmt_update1->bind_param("ii", $id_paket_post, $id_murid_post);
+            $stmt_update1->execute();
+            $stmt_update1->close();
 
-            // Update paket bimbel di registrasi_valid
-            $query_update_paket = "UPDATE registrasi_valid SET id_paket = ? WHERE id_murid = ?";
-            $stmt_update_paket = $conn->prepare($query_update_paket);
-            $stmt_update_paket->bind_param("ii", $id_paket, $id_murid);
+            $stmt_update2 = $conn->prepare("UPDATE master_murid SET id_paket = ? WHERE id_murid = ?");
+            $stmt_update2->bind_param("ii", $id_paket_post, $id_murid_post);
+            $stmt_update2->execute();
+            $stmt_update2->close();
 
-            if ($stmt_update_paket->execute()) {
-                echo "Paket berhasil diperbarui di registrasi_valid.<br>";
-            } else {
-                echo "Gagal memperbarui paket di registrasi_valid.<br>";
-            }
-            $stmt_update_paket->close();
-
-            // Juga update data paket di master_murid jika perlu
-            $query_update_master = "UPDATE master_murid SET id_paket = ? WHERE id_murid = ?";
-            $stmt_update_master = $conn->prepare($query_update_master);
-            $stmt_update_master->bind_param("ii", $id_paket, $id_murid);
-
-            if ($stmt_update_master->execute()) {
-                echo "Paket berhasil diperbarui di master_murid.<br>";
-            } else {
-                echo "Gagal memperbarui paket di master_murid.<br>";
-            }
-            $stmt_update_master->close();
-
-            // Commit transaksi jika sukses
             $conn->commit();
-            echo "Update sukses!<br>";
         } catch (Exception $e) {
-            // Rollback jika ada error
             $conn->rollback();
-            echo "Error: " . $e->getMessage() . "<br>";
         }
-    } else {
-        echo "Invalid parameters!<br>";
     }
 
-    // Redirect setelah berhasil
     echo "<script>alert('Murid berhasil divalidasi dan pembayaran berhasil ditambahkan!'); window.location.href='view_konfirmasi_registrasi.php';</script>";
 }
 
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

@@ -19,8 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     // Tambahkan id_ref berdasarkan role
-    $id_ref_guru = isset($_POST['id_ref_guru']) ? (int)$_POST['id_ref_guru'] : null;
-    $id_ref_murid = isset($_POST['id_ref_murid']) ? (int)$_POST['id_ref_murid'] : null;
+    $id_ref_guru = isset($_POST['id_ref_guru']) ? $_POST['id_ref_guru'] : null;
+    $id_ref_murid = isset($_POST['id_ref_murid']) ? $_POST['id_ref_murid'] : null;
 
     $id_ref = "NULL";
     if ($role == '2' && $id_ref_guru) {
@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Insert user baru
     $query = "INSERT INTO tm_user (username, email, password, role, id_ref, is_active) 
-              VALUES ('$username', '$email', '$hashed_password', '$role', $id_ref, 1)";
+              VALUES ('$username', '$email', '$hashed_password', '$role', '$id_ref', 1)";
 
     if (mysqli_query($conn, $query)) {
         $_SESSION['message'] = "Akun pengguna berhasil ditambahkan.";

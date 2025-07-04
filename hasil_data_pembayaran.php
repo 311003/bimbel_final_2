@@ -98,7 +98,7 @@ LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket
 LEFT JOIN master_murid m ON r.id_murid = m.id_murid
 LEFT JOIN registrasi_murid reg ON r.id_murid = reg.no_reg
 WHERE reg.konfirmasi_registrasi = 'Divalidasi'
- AND m.status_murid =1
+ AND m.id_status_murid =1
 GROUP BY 
     r.id_pembayaran,
     r.id_paket,

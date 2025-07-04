@@ -108,7 +108,7 @@ if (isset($_POST['tambah'])) {
                     </div>
                 </form>
             </div>
-            <main>
+</main>
                 <?= require('layouts/footer.php'); ?>
 </body>
 <html>

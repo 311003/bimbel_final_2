@@ -141,7 +141,15 @@ $stmt->close();
 
 <body>
   <?= require('layouts/header.php'); ?>
-  <?= require('layouts/sidemenu_owner.php'); ?>
+  
+  <?php
+
+  if($_SESSION['role']==1){
+    require('layouts/sidemenu_owner.php');
+  }else{
+    require('layouts/sidemenu_guru.php');
+  }
+  ?>
 
 
   <main id="main" class="main">
