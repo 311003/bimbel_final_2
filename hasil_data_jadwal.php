@@ -9,10 +9,16 @@ $query = "SELECT
             p.paket AS nama_paket, 
             r.tanggal_jadwal, 
             r.jam_masuk, 
-            r.jam_keluar 
+            r.jam_keluar,
+            CASE 
+                WHEN pr.id_presensi IS NOT NULL THEN 'Sudah Presensi'
+                ELSE 'Belum Presensi'
+            END AS status_presensi
           FROM jadwal r
           LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket
-          LEFT JOIN guru g ON r.id_guru = g.id_guru";
+          LEFT JOIN guru g ON r.id_guru = g.id_guru
+          LEFT JOIN presensi pr ON r.id_jadwal = pr.id_jadwal
+          GROUP BY r.id_jadwal";
 
 $result = $conn->query($query);
 
@@ -88,6 +94,7 @@ if (!$result) {
                                 <th>Tanggal Jadwal</th>
                                 <th>Jam Masuk</th>
                                 <th>Jam Keluar</th>
+                                <th>Presensi</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -102,6 +109,7 @@ if (!$result) {
                                     echo "<td>" . htmlspecialchars($row['tanggal_jadwal']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['jam_masuk']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['jam_keluar']) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row['status_presensi']) . "</td>";
                                     echo "<td>";
                                     echo "<a href='edit_jadwal.php?id_jadwal=" . $row['id_jadwal'] . "' class='btn btn-sm btn-warning'>Edit</a> ";
                                     echo "<a href='delete_jadwal.php?id_jadwal=" . $row['id_jadwal'] . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin menghapus data?\")'>Hapus</a>";

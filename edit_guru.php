@@ -32,11 +32,16 @@ if (isset($_GET['id_guru'])) {
         $no_telp = $_POST['no_telp'];
         $pendidikan = $_POST['pendidikan'];
         $gaji = $_POST['gaji'];
+        if(floatval($gaji) > 999999){
+          echo "<script>alert('Gaji tidak boleh lebih dari Rp 999999!'); window.history.back();</script>";
+        }
+        $keterangan = $_POST['keterangan'];
+
 
         // Query UPDATE data ke database
-        $query_update = "UPDATE guru SET nama_guru=?, tanggal_lahir=?, alamat=?, no_telp=?, pendidikan=?,gaji=? WHERE id_guru=?";
+        $query_update = "UPDATE guru SET nama_guru=?, tanggal_lahir=?, alamat=?, no_telp=?, pendidikan=?,gaji=?,keterangan_absensi=? WHERE id_guru=?";
         $stmt_update = $conn->prepare($query_update);
-        $stmt_update->bind_param("sssssss", $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan, $gaji, $id_guru);
+        $stmt_update->bind_param("ssssssss", $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan, $gaji,$keterangan ,$id_guru);
 
         if ($stmt_update->execute()) {
             echo "<script>alert('Data berhasil diperbarui!'); window.location.href='master_guru.php';</script>";
@@ -155,7 +160,12 @@ if (isset($_GET['id_guru'])) {
             <!-- gaji -->
             <div class="mb-3">
                 <label for="gaji" class="form-label">Gaji</label>
-                <input type="number" class="form-control" id="gaji" name="gaji" value="<?= $row['gaji'] ?>" required>
+                <input type="number" class="form-control" id="gaji" name="gaji"  max="999999" value="<?= $row['gaji'] ?>" required>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label for="pendidikan">Keterangan Absensi</label>
+                <input type="text" class="form-control" id="keterangan" name="keterangan" value="<?= $row['keterangan_absensi'] ?>" >
             </div>
 
             <!-- Tombol Submit -->

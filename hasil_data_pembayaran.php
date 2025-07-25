@@ -63,8 +63,9 @@ LEFT JOIN (
     GROUP BY id_pembayaran
 ) b ON r.id_pembayaran = b.id_pembayaran
 SET 
-    r.jumlah_bayar = b.total_bayar,
-    r.sisa_biaya = r.biaya - b.total_bayar,
+    r.jumlah_bayar = COALESCE(b.total_bayar,0),
+    r.sisa_biaya = r.biaya - COALESCE(b.total_bayar,0),
+    r.input_pembayaran = COALESCE(b.total_bayar,0),
     r.status_pembayaran = CASE
         WHEN b.total_bayar >= r.biaya THEN 'Lunas'
         ELSE 'Belum Lunas'

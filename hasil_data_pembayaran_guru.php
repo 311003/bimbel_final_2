@@ -63,8 +63,9 @@ LEFT JOIN (
     GROUP BY id_pembayaran
 ) b ON r.id_pembayaran = b.id_pembayaran
 SET 
-    r.jumlah_bayar = b.total_bayar,
-    r.sisa_bayar = r.gaji - b.total_bayar,
+    r.jumlah_bayar = COALESCE(b.total_bayar,0),
+    r.sisa_bayar = r.gaji - COALESCE(b.total_bayar,0),
+    r.input_pembayaran=COALESCE(b.total_bayar,0),
     r.status_pembayaran = CASE
         WHEN b.total_bayar >= r.gaji THEN 'Lunas'
         ELSE 'Belum Lunas'
@@ -166,7 +167,7 @@ $conn->close();
 
     <main id="main" class="main">
         <div class="container mt-4">
-            <h2 class="text-center">Hasil Data Pembayaran Guru</h2>
+            <h2 class="text-center">Hasil Data Penggajian Guru</h2>
 
             <h4 class="mt-4 text-success">✅ Gaji Guru</h4>
             <table id="viewTable" class="table table-bordered">

@@ -79,6 +79,7 @@ $conn->query($update_status_sql);
 // Fetch the validated students' payment data
 // SELECT pembayaran.*, sum(bukti_pembayaran.jumlah_bayar) as total_bayar FROM pembayaran left join bukti_pembayaran on pembayaran.id_pembayaran = bukti_pembayaran.id_pembayaran group by pembayaran.id_pembayaran;
 $idMurid=$_SESSION['id_ref'];
+
 $query_pembayaran = "
 SELECT 
     r.id_pembayaran,
@@ -98,8 +99,12 @@ LEFT JOIN bukti_pembayaran b ON b.id_pembayaran = r.id_pembayaran
 LEFT JOIN paket_bimbel p ON r.id_paket = p.id_paket
 LEFT JOIN master_murid m ON r.id_murid = m.id_murid
 LEFT JOIN registrasi_murid reg ON r.id_murid = reg.id_murid
-WHERE reg.konfirmasi_registrasi = 'Divalidasi' AND  r.id_murid=". $idMurid."
-GROUP BY 
+WHERE reg.konfirmasi_registrasi = 'Divalidasi'";
+if($_SESSION['role']==3){
+$query_pembayaran .=" AND  r.id_murid=". $idMurid;
+}
+$query_pembayaran .="
+ GROUP BY 
     r.id_pembayaran,
     r.id_paket,
     p.paket,

@@ -32,17 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       //update pembayaran
 
-      $query = "SELECT gaji, jumlah_bayar, sisa_bayar, status_pembayaran FROM pembayaran_guru WHERE id_pembayaran = ?";
+      $query = "SELECT gaji, jumlah_bayar, sisa_bayar, status_pembayaran, input_pembayaran FROM pembayaran_guru WHERE id_pembayaran = ?";
       $stmt = $conn->prepare($query);
       $stmt->bind_param("s", $id_pembayaran);
       $stmt->execute();
-      $stmt->bind_result($gaji, $jumlah_bayar_lama, $sisa_biaya, $status_pembayaran);
+      $stmt->bind_result($gaji, $jumlah_bayar_lama, $sisa_biaya, $status_pembayaran,$input_pembayaran);
       $stmt->fetch();
       $stmt->close();
 
       // Menghitung jumlah_bayar baru dan sisa_biaya
       $jumlah_bayar_total = $jumlah_bayar_lama - $jumlah_bayar;
       $sisa_bayar = $gaji - $jumlah_bayar_total;
+      $input_bayar = $input_pembayaran - $jumlah_bayar;
 
       // Tentukan status pembayaran
       if ($sisa_bayar <= 0) {
@@ -50,16 +51,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       } else {
         $status_pembayaran = 'Belum Lunas';
       }
-
+     
       // Update data pembayaran
-      $query_update = "UPDATE pembayaran_guru SET jumlah_bayar = ?, sisa_bayar = ?, status_pembayaran = ? WHERE id_pembayaran = ?";
+      $query_update = "UPDATE pembayaran_guru SET jumlah_bayar = ?, sisa_bayar = ?, status_pembayaran = ?, input_pembayaran=? WHERE id_pembayaran = ?";
       $stmt_update = $conn->prepare($query_update);
-      $stmt_update->bind_param("dsss", $jumlah_bayar_total, $sisa_bayar, $status_pembayaran, $id_pembayaran);
+      $stmt_update->bind_param("ddsds", $jumlah_bayar_total, $sisa_bayar, $status_pembayaran,$input_bayar, $id_pembayaran);
       $stmt_update->execute();
       $stmt_update->close();
       $cashflow = new Cashflow($conn);
       $cashflow->remove('bukti_pembayaran_guru',$id_bukti);
-
       // Hapus data hanya berdasarkan ID BUKTI
       $stmt_del = $conn->prepare("DELETE FROM bukti_pembayaran_guru WHERE id_bukti = ?");
       $stmt_del->bind_param("i", $id_bukti);

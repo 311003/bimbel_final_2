@@ -18,12 +18,16 @@ if (isset($_POST['tambah'])) {
     $no_telp = $_POST['no_telp'];
     $pendidikan = $_POST['pendidikan'];
     $gaji = $_POST['gaji'];
+    if(floatval($gaji) > 999999){
+          echo "<script>alert('Gaji tidak boleh lebih dari Rp 999999!'); window.history.back();</script>";
+    }
+    $keterangan = $_POST['keterangan'];
 
     // Query untuk insert data ke tabel_guru
-    $query_insert_guru = "INSERT INTO guru (id_guru, nama_guru, tanggal_lahir, alamat, no_telp, pendidikan,gaji)
+    $query_insert_guru = "INSERT INTO guru (id_guru, nama_guru, tanggal_lahir, alamat, no_telp, pendidikan,gaji,keterangan_absensi)
                             VALUES (?, ?, ?, ?, ?, ?,?)";
     $stmt_guru = $conn->prepare($query_insert_guru);
-    $stmt_guru->bind_param("sssssss", $id_guru, $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan, $gaji);
+    $stmt_guru->bind_param("sssssss", $id_guru, $nama_guru, $tanggal_lahir, $alamat, $no_telp, $pendidikan, $gaji,$keterangan);
 
     // Eksekusi query 
     if ($stmt_guru->execute()) {
@@ -132,7 +136,12 @@ if (isset($_POST['tambah'])) {
                     </div>
                     <div class="form-group mb-3">
                         <label for="no_telp">Gaji</label>
-                        <input type="number" class="form-control" id="gaji" name="gaji" required>
+                        <input type="number" class="form-control" id="gaji" name="gaji" max="999999" required>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="pendidikan">Keterangan Absensi</label>
+                        <input type="text" class="form-control" id="keterangan" name="keterangan" >
                     </div>
                     <!-- Submit Button -->
                     <div class="text-center">
@@ -144,6 +153,13 @@ if (isset($_POST['tambah'])) {
 
     </main>
     <?= require('layouts/footer.php'); ?>
-</body>
 
+    <script>
+          // Tambahan untuk membatasi tanggal lahir (tidak boleh hari ini atau ke depan)
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const maxTanggalLahir = yesterday.toISOString().split('T')[0];
+        document.getElementById("tanggal_lahir").setAttribute("max", maxTanggalLahir);
+    </script>
+</body>
 </html>

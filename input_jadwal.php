@@ -60,6 +60,11 @@ if (isset($_POST['tambah_jadwal'])) {
         exit();
     }
 
+    if($jam_keluar < $jam_masuk){
+         echo "<script>alert('Jam keluar harus lebih besar dari jam masuk'); window.history.back();</script>";
+        exit();
+    }
+
     // Cek bentrok jadwal untuk setiap guru
     foreach ((array)$id_guru_list as $id_guru) {
         $cek_bentrok = $conn->prepare("SELECT * FROM jadwal 
@@ -250,6 +255,20 @@ if (isset($_POST['tambah_jadwal'])) {
 
         const today = new Date().toISOString().split('T')[0];
         document.getElementById("tanggal_jadwal").setAttribute("min", today);
+
+        const jam_masuk= document.getElementById("jam_masuk")
+        const jam_keluar= document.getElementById("jam_keluar")
+
+
+        jam_keluar.addEventListener('change',function(){
+            jam_keluar.min=jam_masuk.value
+
+            if(jam_keluar.value < jam_masuk.value){
+                jam_keluar.value=''
+            }
+        })
+
+        
     </script>
 </body>
 

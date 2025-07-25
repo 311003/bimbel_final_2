@@ -78,6 +78,7 @@ session_start();
                                 <th>Nomor Telepon</th>
                                 <th>Pendidikan</th>
                                 <th>Gaji</th>
+                                <th>Keterangan</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -98,7 +99,7 @@ session_start();
 
                             // Ambil data guru
                             $query = "SELECT g.id_guru, g.nama_guru, g.tanggal_lahir, g.alamat, g.no_telp, g.pendidikan, g.gaji,
-                          g.id_status_guru, s.status_guru 
+                          g.id_status_guru, s.status_guru ,g.keterangan_absensi
                     FROM guru g
                     LEFT JOIN status_guru s ON g.id_status_guru = s.id_status_guru";
 
@@ -114,9 +115,10 @@ session_start();
                                     echo "<td>" . htmlspecialchars($row['no_telp']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['pendidikan']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['gaji']) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row['keterangan_absensi']) . "</td>";
                                     echo "<td>
-                            <select class='form-select form-select-sm' 
-                                onchange='updateStatus(" . htmlspecialchars($row['id_guru']) . ", this.value)'>";
+                            <select class='form-select form-select-sm' data-prev='".$row['id_status_guru']."'
+                                onchange='updateStatus(" . htmlspecialchars($row['id_guru']) . ", this.value,this)'>";
 
                                     foreach ($statusOptions as $id => $status) {
                                         $selected = ($row['id_status_guru'] == $id) ? "selected" : "";
@@ -148,7 +150,8 @@ session_start();
             // ]
         });
 
-        function updateStatus(id_guru, id_status_guru) {
+        function updateStatus(id_guru, id_status_guru,selectElement) {
+            const tempvalue=selectElement.getAttribute('data-prev');
             let xhr = new XMLHttpRequest();
             xhr.open("POST", "update_status_guru.php", true);
             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -159,8 +162,10 @@ session_start();
 
                     if (xhr.status === 200 && xhr.responseText.trim() === "success") {
                         alert("Status berhasil diperbarui!");
+                        selectElement.setAttribute('data-prev',selectElement.value)
                     } else {
                         alert("Gagal memperbarui status: " + xhr.responseText);
+                        selectElement.value=tempvalue
                     }
                 }
             };

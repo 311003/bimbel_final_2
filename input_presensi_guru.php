@@ -30,23 +30,7 @@ function generateIdPresensi($conn)
 // Memanggil fungsi untuk mendapatkan ID presensi baru
 $newId = generateIdPresensi($conn);
 
-// Ambil data jadwal beserta informasi terkait
-$query_jadwal = "SELECT 
-                    j.id_jadwal, 
-                    g.id_guru, 
-                    g.nama_guru, 
-                    p.id_paket, 
-                    p.paket AS nama_paket,
-                    j.tanggal_jadwal, 
-                    j.jam_masuk, 
-                    j.jam_keluar
-                 FROM jadwal j
-                 LEFT JOIN guru g ON j.id_guru = g.id_guru
-                 LEFT JOIN paket_bimbel p ON j.id_paket = p.id_paket";
-if ($_SESSION['role'] != 1) {
-    $query_jadwal .= " WHERE g.id_guru = '" . $_SESSION['id_ref'] . "'";
-}
-$result_jadwal = $conn->query($query_jadwal);
+// Ambil data murid
 
 $murid_by_paket = [];
 
@@ -63,13 +47,39 @@ JOIN (
 WHERE r.konfirmasi_registrasi = 'Divalidasi' AND r.id_paket IS NOT NULL
 ";
 
+$paketMurid=[];
+
 $res_murid = $conn->query($query_murid_all);
 while ($row = $res_murid->fetch_assoc()) {
     $murid_by_paket[$row['id_paket']][] = [
         'id_murid' => $row['id_murid'],
         'nama' => $row['nama']
     ];
+    $paketMurid[]=$row['id_paket'];
 }
+
+
+// Ambil data jadwal beserta informasi terkait
+$query_jadwal = "SELECT 
+                    j.id_jadwal, 
+                    g.id_guru, 
+                    g.nama_guru, 
+                    p.id_paket, 
+                    p.paket AS nama_paket,
+                    j.tanggal_jadwal, 
+                    j.jam_masuk, 
+                    j.jam_keluar
+                 FROM jadwal j
+                 LEFT JOIN guru g ON j.id_guru = g.id_guru
+                 LEFT JOIN paket_bimbel p ON j.id_paket = p.id_paket";
+if ($_SESSION['role'] != 1) {
+    $query_jadwal .= " WHERE g.id_guru = '" . $_SESSION['id_ref'] . "'";
+}
+if(count($paketMurid)>0){
+     $query_jadwal .= " AND p.id_paket IN ('".(implode("','",$paketMurid))."')";
+}
+
+$result_jadwal = $conn->query($query_jadwal);
 
 
 // Jika form disubmit untuk tambah presensi
@@ -88,7 +98,8 @@ if (isset($_POST['tambah_presensi'])) {
     $query_get_jadwal = "SELECT j.id_jadwal, g.id_guru, p.id_paket FROM jadwal j
                          LEFT JOIN guru g ON j.id_guru = g.id_guru
                          LEFT JOIN paket_bimbel p ON j.id_paket = p.id_paket
-                         WHERE j.id_jadwal = ?";
+                         WHERE j.id_jadwal = ? 
+                         ";
     $stmt_jadwal = $conn->prepare($query_get_jadwal);
     $stmt_jadwal->bind_param("s", $id_jadwal);
     $stmt_jadwal->execute();
@@ -292,7 +303,7 @@ if (isset($_POST['tambah_presensi'])) {
         <!-- JavaScript -->
         <script>
             const muridData = <?= json_encode($murid_by_paket) ?>;
-
+            let pilihMurid=[]
 
             function autofillData() {
                 // Ambil elemen dropdown dan input field
@@ -322,6 +333,7 @@ if (isset($_POST['tambah_presensi'])) {
 
                 // Kosongkan container murid
                 container.innerHTML = '';
+                pilihMurid=[];
 
                 if (!muridData[idPaket] || muridData[idPaket].length === 0) {
                     container.innerHTML = "<div class='text-danger'>Tidak ada murid untuk paket ini.</div>";
@@ -333,7 +345,7 @@ if (isset($_POST['tambah_presensi'])) {
                 const div = document.createElement("div");
                 div.classList.add("murid-entry", "mb-2", "d-flex", "align-items-center");
                 div.innerHTML = `
-                    <select class="form-control me-2" name="id_murid[]" required onchange="autofillNamaMurid(this)">
+                    <select class="form-control me-2" name="id_murid[]" data-prev="" required onchange="autofillNamaMurid(this)">
                         <option value="">-- Pilih ID Murid --</option>
                         ${muridData[idPaket].map(m => `<option value="${m.id_murid}" data-nama="${m.nama}">${m.id_murid} - ${m.nama}</option>`).join('')}
                     </select>
@@ -344,10 +356,30 @@ if (isset($_POST['tambah_presensi'])) {
             }
 
             function autofillNamaMurid(selectElement) {
+                const prevValue=selectElement.getAttribute('data-prev')
+                const valueSelect=selectElement.value
+
                 let selectedOption = selectElement.options[selectElement.selectedIndex];
                 let namaMurid = selectedOption.getAttribute("data-nama") || '';
                 let namaInput = selectElement.parentElement.querySelector('input[name="nama_murid[]"]');
-                namaInput.value = namaMurid;
+                        
+                if(prevValue && valueSelect==""){
+
+                    pilihMurid=pilihMurid.filter(murid=>murid != prevValue)
+                     namaInput.value = '';
+                }else{
+                     if(valueSelect && pilihMurid.includes(valueSelect)){
+                        alert('Murid sudah di pilih')
+                        selectElement.value=''
+                    }else{
+                        pilihMurid.push(valueSelect)
+                        selectElement.setAttribute('data-prev',valueSelect)
+                        namaInput.value = namaMurid;
+                    }
+
+                }   
+               
+                
             }
 
             function addMurid() {
@@ -373,6 +405,13 @@ if (isset($_POST['tambah_presensi'])) {
             }
 
             function removeMurid(button) {
+                const parentElement=button.parentElement
+                const select=parentElement.querySelector('select')
+                const selectedValue=select.value
+
+                if(selectedValue){
+                    pilihMurid= pilihMurid.filter(murid=>murid != selectedValue)
+                }
                 let container = document.getElementById("murid-container");
                 let entries = container.querySelectorAll(".murid-entry");
                 if (entries.length > 1) {

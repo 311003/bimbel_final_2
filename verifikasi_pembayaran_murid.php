@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jumlah_bayar = $_POST['jumlah_bayar'];   // Jumlah pembayaran yang dimasukkan
     $id_paket = $_POST['id_paket'];           // ID Paket yang dipilih
     $id_murid = $_POST['id_murid'];           // ID Murid yang dipilih
-
+   
     // Proses upload bukti pembayaran
     $bukti_pembayaran = null;
     if (isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] === UPLOAD_ERR_OK) {
@@ -91,10 +91,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $status_pembayaran = ($sisa_biaya <= 0) ? 'Lunas' : 'Belum Lunas';
 
     // Update data pembayaran dengan bukti pembayaran
-    // Update pembayaran table
-    $query_update = "UPDATE pembayaran SET jumlah_bayar = ?, sisa_biaya = ?, status_pembayaran = ?, input_pembayaran = ?, tanggal_bayar = ? WHERE id_pembayaran = ?";
+   // Update pembayaran table
+    $query_update = "UPDATE pembayaran SET jumlah_bayar = ?, sisa_biaya = ?, status_pembayaran = ?, input_pembayaran = ? WHERE id_pembayaran = ?";
     $stmt_update = $conn->prepare($query_update);
-    $stmt_update->bind_param("dsssss", $jumlah_bayar_total, $sisa_biaya, $status_pembayaran, $bukti_pembayaran, $id_pembayaran, $tanggal_bayae);
+    $stmt_update->bind_param("dssss", $jumlah_bayar_total, $sisa_bayar, $status_pembayaran, $jumlah_bayar , $id_pembayaran);
     if ($stmt_update->execute()) {
 
         // If update was successful, insert the bukti pembayaran
@@ -203,8 +203,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <!-- ID Murid -->
                 <div class="form-group mb-3">
                     <label for="id_murid">ID Murid</label>
-                    <input type="text" class="form-control" id="id_murid" name="id_murid"
+                    <input type="text" class="form-control" id="id_murid_view" name="id_murid_view"
                         value="<?= htmlspecialchars($data_pembayaran['id_murid']) ?> - <?= htmlspecialchars($data_pembayaran['nama']) ?>"
+                        readonly>
+                    <input type="hidden" class="form-control" id="id_murid" name="id_murid"
+                        value="<?= htmlspecialchars($data_pembayaran['id_murid']) ?>"
                         readonly>
                 </div>
 
